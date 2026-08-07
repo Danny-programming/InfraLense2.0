@@ -251,8 +251,10 @@ const MyPetitions: React.FC<MyPetitionsProps> = ({ onTrack }) => {
   return (
     <div className="flex-1 p-8 overflow-y-auto custom-scrollbar">
       <header className="mb-10">
-        <h2 className="text-3xl font-bold mb-2">My Governance PortFolio</h2>
-        <p className="text-[var(--text-secondary)]">Track and manage your submitted infrastructure reform petitions.</p>
+        <h2 className="text-3xl font-black italic tracking-tighter uppercase flex items-center gap-3">
+          <FileText className="text-[var(--accent)]" size={28} /> My Governance Portfolio
+        </h2>
+        <p className="text-white/40 text-[10px] uppercase tracking-[0.3em] font-bold mt-1">Track and manage your submitted infrastructure reform petitions</p>
       </header>
 
       {petitions.length === 0 ? (
