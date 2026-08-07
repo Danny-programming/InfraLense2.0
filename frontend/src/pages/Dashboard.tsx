@@ -19,7 +19,8 @@ import {
   AlertTriangle,
   Activity,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Menu
 } from 'lucide-react';
 import {
   PieChart,
@@ -61,6 +62,7 @@ const Dashboard: React.FC = () => {
   const [category, setCategory] = React.useState('all');
   const [petitionText, setPetitionText] = React.useState<string | null>(null);
   const [isGenerating, setIsGenerating] = React.useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
 
   const categories = [
     { id: 'all', name: 'All', icon: '🌐' },
@@ -170,16 +172,25 @@ Generated via InfraLense Platform
     <div className="h-screen w-full bg-[#020812] text-white flex flex-col overflow-hidden selection:bg-[var(--accent)] selection:text-black font-sans">
       <header className="h-14 border-b border-white/5 bg-[#050b16] flex items-center justify-between px-6 z-[1001] relative">
         <div className="flex items-center gap-4">
-          <Link to="/" className="hover:opacity-80 transition-opacity">
-            <div className="w-10 h-10 bg-[var(--accent)] rounded-xl flex items-center justify-center rotate-3 shadow-[0_0_20px_rgba(0,245,255,0.4)]">
+          <Link to="/" className="hover:opacity-80 transition-opacity flex items-center gap-3">
+            <div className="w-10 h-10 bg-[var(--accent)] rounded-xl flex items-center justify-center rotate-3 shadow-[0_0_20px_rgba(0,245,255,0.4)] shrink-0">
               <Activity className="text-black" size={20} />
             </div>
-          </Link>
-          <div className="flex flex-col">
-            <h1 className="text-lg font-black tracking-tighter uppercase italic flex items-center gap-2">
+            <h1 className="text-lg font-black tracking-tighter uppercase italic">
               Infra<span className="text-[var(--accent)]">Lense</span>
             </h1>
-          </div>
+          </Link>
+          
+          <div className="w-px h-6 bg-white/10 mx-2" />
+          
+          {/* Main Sidebar Collapse toggle */}
+          <button
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/50 hover:text-white transition-all flex items-center justify-center"
+            title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          >
+            <Menu size={16} />
+          </button>
         </div>
 
         <div className="flex items-center gap-6">
@@ -194,12 +205,14 @@ Generated via InfraLense Platform
 
       <main className="flex-1 relative flex overflow-hidden bg-[#020812]">
         {/* Sidebar - Catchy Premium Design */}
-        <aside className="w-64 border-r border-white/5 bg-gradient-to-b from-[#050b16] to-[#020812] flex flex-col shrink-0 z-50 relative group">
+        <aside className={`transition-all duration-300 ${isSidebarCollapsed ? 'w-20' : 'w-64'} border-r border-white/5 bg-gradient-to-b from-[#050b16] to-[#020812] flex flex-col shrink-0 z-50 relative group`}>
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(0,245,255,0.03),transparent_40%)] pointer-events-none" />
 
-          <div className="flex-1 py-8 px-5 space-y-6 overflow-y-auto custom-scrollbar relative">
+          <div className={`flex-1 py-8 ${isSidebarCollapsed ? 'px-3' : 'px-5'} space-y-6 overflow-y-auto custom-scrollbar relative`}>
             <div>
-              <h3 className="text-[9px] uppercase font-black text-white/20 tracking-[0.4em] px-2 mb-5">Core Modules</h3>
+              {!isSidebarCollapsed && (
+                <h3 className="text-[9px] uppercase font-black text-white/20 tracking-[0.4em] px-2 mb-5">Core Modules</h3>
+              )}
               <div className="space-y-1.5">
                 {navItems.map((item) => {
                   const hasChildren = !!item.children;
@@ -211,18 +224,24 @@ Generated via InfraLense Platform
                       <button
                         onClick={() => {
                           if (hasChildren) {
-                            setIsPetitionsOpen(!isPetitionsOpen);
+                            if (isSidebarCollapsed) {
+                              setIsSidebarCollapsed(false);
+                              setIsPetitionsOpen(true);
+                            } else {
+                              setIsPetitionsOpen(!isPetitionsOpen);
+                            }
                           } else {
                             if (item.onClick) item.onClick();
                             if (item.view) setActiveView(item.view);
                           }
                         }}
-                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300 relative group/btn ${isCurrentActive
+                        className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center' : 'justify-between'} px-4 py-3 rounded-xl transition-all duration-300 relative group/btn ${isCurrentActive
                           ? 'bg-white/[0.03] text-[var(--accent)]'
                           : isChildActive
                             ? 'text-white/80'
                             : 'text-white/40 hover:text-white hover:bg-white/5'
                           }`}
+                        title={isSidebarCollapsed ? item.label : undefined}
                       >
                         {/* Active vertical strip indicator */}
                         {isCurrentActive && (
@@ -230,12 +249,14 @@ Generated via InfraLense Platform
                         )}
 
                         <div className="flex items-center gap-4">
-                          <div className={`${isCurrentActive || isChildActive ? 'text-[var(--accent)]' : 'text-white/20 group-hover/btn:text-white/60'} transition-colors`}>
+                          <div className={`${isCurrentActive || isChildActive ? 'text-[var(--accent)]' : 'text-white/20 group-hover/btn:text-white/60'} transition-colors shrink-0`}>
                             {item.icon}
                           </div>
-                          <span className="text-sm font-bold tracking-tight">{item.label}</span>
+                          {!isSidebarCollapsed && (
+                            <span className="text-sm font-bold tracking-tight">{item.label}</span>
+                          )}
                         </div>
-                        {hasChildren && (
+                        {hasChildren && !isSidebarCollapsed && (
                           <div className="text-white/30 group-hover/btn:text-white/60 transition-colors">
                             {isPetitionsOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                           </div>
@@ -244,7 +265,7 @@ Generated via InfraLense Platform
 
                       {/* Dropdown transition */}
                       <AnimatePresence>
-                        {hasChildren && isPetitionsOpen && (
+                        {hasChildren && isPetitionsOpen && !isSidebarCollapsed && (
                           <motion.div
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: 'auto', opacity: 1 }}
@@ -263,7 +284,7 @@ Generated via InfraLense Platform
                                     }`}
                                 >
                                   <div className="flex items-center gap-3">
-                                    <div className={`${isSubActive ? 'text-[var(--accent)]' : 'text-white/20 group-hover/subBtn:text-white/60'} transition-colors`}>
+                                    <div className={`${isSubActive ? 'text-[var(--accent)]' : 'text-white/20 group-hover/subBtn:text-white/60'} transition-colors shrink-0`}>
                                       {sub.icon}
                                     </div>
                                     <span className="text-[12px] font-bold tracking-tight">{sub.label}</span>
@@ -285,7 +306,9 @@ Generated via InfraLense Platform
             </div>
 
             <div>
-              <h3 className="text-[10px] uppercase font-black text-white/20 tracking-[0.4em] px-2 mb-6">System</h3>
+              {!isSidebarCollapsed && (
+                <h3 className="text-[10px] uppercase font-black text-white/20 tracking-[0.4em] px-2 mb-6">System</h3>
+              )}
               <div className="space-y-2">
                 {secondaryNavItems.map((item) => (
                   <button
@@ -294,10 +317,11 @@ Generated via InfraLense Platform
                       if (item.onClick) item.onClick();
                       if (item.view) setActiveView(item.view);
                     }}
-                    className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-white/30 hover:text-white hover:bg-white/5 transition-all text-sm font-medium"
+                    className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-4'} px-4 py-3 rounded-xl text-white/30 hover:text-white hover:bg-white/5 transition-all text-sm font-medium`}
+                    title={isSidebarCollapsed ? item.label : undefined}
                   >
-                    <div className="opacity-50">{item.icon}</div>
-                    <span>{item.label}</span>
+                    <div className="opacity-50 shrink-0">{item.icon}</div>
+                    {!isSidebarCollapsed && <span>{item.label}</span>}
                   </button>
                 ))}
               </div>
