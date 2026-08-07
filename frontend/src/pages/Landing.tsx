@@ -32,11 +32,11 @@ const Landing: React.FC = () => {
   const [activeSectorIndex, setActiveSectorIndex] = useState(0);
   const [displayedStability, setDisplayedStability] = useState(0);
   const [logs, setLogs] = useState<string[]>([
-    '[NEURAL PARITY: OPTIMIZED]',
-    '[NEURAL PARITY: OPTIMIZED]',
+    '[SYSTEM PARITY: OPTIMIZED]',
+    '[SYSTEM PARITY: OPTIMIZED]',
     '[GAP DETECTED: 16%]',
     '[SCANNING SECTOR: 676-U]',
-    '[NEURAL PARITY: OPTIMIZED]',
+    '[SYSTEM PARITY: OPTIMIZED]',
   ]);
   const [clearanceId, setClearanceId] = useState('');
   const [isAuthorizing, setIsAuthorizing] = useState(false);
@@ -62,11 +62,11 @@ const Landing: React.FC = () => {
 
     const sector = SECTORS[activeSectorIndex];
     setLogs([
-      '[NEURAL PARITY: OPTIMIZED]',
+      '[SYSTEM PARITY: OPTIMIZED]',
       `[SAT LINK STABILITY: ${(100 - (100 - sector.stability) * 0.4).toFixed(1)}%]`,
       `[GAP DETECTED: ${Math.round(100 - sector.stability)}%]`,
       `[SCANNING SECTOR: ${sector.code}]`,
-      '[NEURAL PARITY: OPTIMIZED]',
+      '[SYSTEM PARITY: OPTIMIZED]',
     ]);
 
     return () => clearInterval(timer);
@@ -77,7 +77,7 @@ const Landing: React.FC = () => {
       const messages = [
         `[SCANNING SUB-GRID: ${Math.floor(Math.random() * 800 + 100)}]`,
         `[PACKETS DEQUEUED: <${(Math.random() * 5 + 1).toFixed(1)}MS]`,
-        '[NEURAL PARITY: OPTIMIZED]',
+        '[SYSTEM PARITY: OPTIMIZED]',
         `[SAT LINK STABILITY: ${(100 - (100 - SECTORS[activeSectorIndex].stability) * 0.4 + (Math.random() * 2 - 1)).toFixed(1)}%]`,
         `[GEOSPATIAL DRIFT: <0.00${Math.floor(Math.random() * 9 + 1)}°]`
       ];
@@ -121,7 +121,7 @@ const Landing: React.FC = () => {
           />
         </Link>
         <div className="flex gap-10 items-center">
-          <Link to="/login" className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60 hover:text-[var(--accent)] transition-colors">Neural Login</Link>
+          <Link to="/login" className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60 hover:text-[var(--accent)] transition-colors">Portal Login</Link>
           <Link to="/admin/login">
             <button className="px-6 py-2.5 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-[0.3em] hover:bg-white/10 hover:border-[var(--accent)]/40 hover:text-[var(--accent)] transition-all">Admin System</button>
           </Link>
@@ -166,7 +166,7 @@ const Landing: React.FC = () => {
             transition={{ delay: 0.3 }}
             className="text-lg md:text-xl text-white/40 mb-16 max-w-3xl mx-auto text-center font-medium uppercase tracking-tight landing-font-body"
           >
-            Transforming regionals through <span className="text-white font-black italic">Neural Scanning</span> and <span className="text-[var(--accent)] font-black italic">Macro Intelligence</span>.
+            Transforming regionals through <span className="text-white font-black italic">System Scanning</span> and <span className="text-[var(--accent)] font-black italic">Macro Intelligence</span>.
           </motion.p>
 
           <motion.div
@@ -295,7 +295,7 @@ const Landing: React.FC = () => {
                     </p>
                   </div>
                   <div className="space-y-2 bg-white/[0.02] border border-white/5 p-4 rounded-2xl hover:border-white/20 hover:bg-white/[0.04] transition-all">
-                    <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.3em]">Neural Parity</p>
+                    <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.3em]">System Parity</p>
                     <p 
                       style={{ 
                         color: SECTORS[activeSectorIndex].color,
@@ -544,7 +544,7 @@ const Landing: React.FC = () => {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-10 opacity-30 group">
           <div className="flex flex-col gap-2">
             <span className="text-[9px] uppercase tracking-[0.5em] font-black group-hover:text-white transition-colors">Infra Lense Intelligence © 2026</span>
-            <span className="text-[8px] uppercase tracking-[0.4em] font-bold text-[var(--accent)]">Project Neural-Alpha Deployment</span>
+            <span className="text-[8px] uppercase tracking-[0.4em] font-bold text-[var(--accent)]">Project System-Alpha Deployment</span>
           </div>
           <div className="flex gap-12 text-[9px] font-black uppercase tracking-[0.4em]">
             <a href="#" className="hover:text-[var(--accent)] transition-colors">Protocol</a>

@@ -149,13 +149,13 @@ const MyPetitions: React.FC<MyPetitionsProps> = ({ onTrack }) => {
           <div class="official-seal">${petition.status}</div>
         </div>
         <div class="seal-box">
-          DIGITAL AUTHENTICATION<br>ENCRYPTED VIA<br>GEMINI ULTRA 2.0
+          DIGITAL AUTHENTICATION<br>ENCRYPTED VIA<br>SECURE PROTOCOL
         </div>
       </div>
       
       <div class="meta">
         This is an electronically generated governance document. No physical signature required.<br>
-        Verified at ${new Date().toISOString()} via Global Neural Link.
+        Verified at ${new Date().toISOString()} via Secure System Link.
       </div>
     </div>
   </div>

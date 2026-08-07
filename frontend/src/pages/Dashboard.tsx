@@ -83,7 +83,7 @@ CASE BRIEFING:
 ${petitionText}
 
 --------------------------------
-Generated via InfraLense Neural Link (Gemini AI)
+Generated via InfraLense Platform
 `;
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -99,7 +99,7 @@ Generated via InfraLense Neural Link (Gemini AI)
     const store = useMapStore.getState();
     if (!store.focalLocation && !store.pingLocation) {
       console.log('[Dashboard] Initial entry: Triggering regional sync...');
-      toast.loading('Synchronizing GPS neural link...', { id: 'locate-me' });
+      toast.loading('Synchronizing GPS location...', { id: 'locate-me' });
       store.triggerLocate();
     }
   }, []);
@@ -157,7 +157,6 @@ Generated via InfraLense Neural Link (Gemini AI)
             <h1 className="text-lg font-black tracking-tighter uppercase italic flex items-center gap-2">
               Infra<span className="text-[var(--accent)]">Lense</span>
             </h1>
-            <span className="text-[9px] uppercase font-bold text-[var(--accent)] tracking-[0.3em] opacity-60">LIFECYCLE SYNC ACTIVE - v2.0</span>
           </div>
         </div>
 
@@ -225,9 +224,9 @@ Generated via InfraLense Neural Link (Gemini AI)
             <div className="p-4 bg-gradient-to-br from-[var(--accent-dim)] to-transparent rounded-2xl border border-[var(--accent)]/10">
               <div className="text-[10px] text-[var(--accent)] font-black uppercase mb-1.5 flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] shadow-[0_0_10px_var(--accent)] animate-pulse" />
-                Live Neural Link
+                Live System Status
               </div>
-              <p className="text-[11px] text-white/40 leading-relaxed font-medium">Regional infrastructure data being processed via Gemini Ultra.</p>
+              <p className="text-[11px] text-white/40 leading-relaxed font-medium">Regional infrastructure data being processed in real-time.</p>
             </div>
           </div>
         </aside>
@@ -335,7 +334,7 @@ Generated via InfraLense Neural Link (Gemini AI)
                   <BarChart3 size={120} />
                 </div>
                 <div className="max-w-2xl relative z-10">
-                  <h4 className="text-xl font-black uppercase italic tracking-tighter mb-4 text-white">Neural Strategy Directive</h4>
+                  <h4 className="text-xl font-black uppercase italic tracking-tighter mb-4 text-white">System Strategy Directive</h4>
                   <p className="text-sm text-white/60 leading-relaxed font-medium mb-8">
                     The current global analysis indicates a high consolidation of critical gaps in Tier-2 urban sectors. AI-driven predictive modeling suggests that the dispatch of formal petitions in these regions could accelerate resilience parity by 14% within the next fiscal transition.
                   </p>
@@ -464,7 +463,7 @@ Generated via InfraLense Neural Link (Gemini AI)
                               </div>
                               <div className="text-left">
                                 <span className="block text-xs font-black uppercase tracking-widest leading-none mb-1">Population Density</span>
-                                <span className="text-[10px] opacity-60 font-medium lowercase">Neural heatmap overlay active</span>
+                                <span className="text-[10px] opacity-60 font-medium lowercase">Population heatmap overlay active</span>
                               </div>
                             </div>
                             <div className={`w-3 h-3 rounded-full ${heatmap.enabled ? 'bg-[var(--accent)] shadow-[0_0_10px_var(--accent)]' : 'bg-white/10'}`} />
@@ -611,7 +610,7 @@ Generated via InfraLense Neural Link (Gemini AI)
                             {isGenerating ? (
                               <>
                                 <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                                Neural Syncing...
+                                Synchronizing...
                               </>
                             ) : (
                               <>
@@ -648,7 +647,7 @@ Generated via InfraLense Neural Link (Gemini AI)
                                     setPetitionText(null);
                                   } catch (e: any) {
                                     console.error('Dispatch failed:', e.response?.data || e.message);
-                                    toast.error(e.response?.data?.error || 'Neural link failed (Database offline).', { id: loadingToast });
+                                    toast.error(e.response?.data?.error || 'System connection failed (Database offline).', { id: loadingToast });
                                   }
                                 }}
                                 className="flex-1 py-4 bg-[var(--accent)] text-black font-black uppercase text-[10px] tracking-[0.3em] rounded-2xl shadow-[0_10px_30px_rgba(0,245,255,0.2)] hover:scale-[1.02] transition-transform"

@@ -288,7 +288,7 @@ const AdminDashboard: React.FC = () => {
             <div className="flex justify-between items-center">
               <h3 className="font-black italic tracking-tighter uppercase text-lg flex items-center gap-3">
                 <Activity className="text-[var(--accent)]" size={18} />
-                Neural Scans
+                Live Telemetry
               </h3>
               <span className="flex h-2.5 w-2.5 rounded-full bg-[var(--accent)] animate-pulse shadow-[0_0_15px_var(--accent)]"></span>
             </div>
@@ -465,7 +465,7 @@ const AdminDashboard: React.FC = () => {
             <div className="flex items-center gap-4 p-6 bg-[var(--accent)]/5 border border-[var(--accent)]/20 rounded-3xl relative overflow-hidden group">
               <TrendingUp size={24} className="text-[var(--accent)] shrink-0 animate-pulse" />
               <div>
-                <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--accent)] mb-1">Neural Strategy Proactive Analysis</h4>
+                <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--accent)] mb-1">System Strategy Proactive Analysis</h4>
                 <p className="text-xs text-white/60 leading-relaxed font-medium italic">"{recommendation}"</p>
               </div>
             </div>
@@ -732,12 +732,12 @@ const AdminDashboard: React.FC = () => {
                     </div>
                     <div className="w-full md:w-1/2 space-y-6">
                       <div className="bg-white/5 border border-white/5 rounded-3xl p-6">
-                        <span className="text-[9px] uppercase font-black tracking-[0.3em] text-white/20 mb-2 block">AI Neural Classification</span>
+                        <span className="text-[9px] uppercase font-black tracking-[0.3em] text-white/20 mb-2 block">AI Classification</span>
                         <h3 className="text-2xl font-black italic text-white uppercase">{selectedComplaint.category}</h3>
                       </div>
 
                       <div className="bg-white/5 border border-white/5 rounded-3xl p-6">
-                        <span className="text-[9px] uppercase font-black tracking-[0.3em] text-white/20 mb-2 block">Neural Severity Assignment</span>
+                        <span className="text-[9px] uppercase font-black tracking-[0.3em] text-white/20 mb-2 block">AI Severity Assignment</span>
                         <div className="flex items-baseline gap-2">
                           <span className={`text-3xl font-black italic ${selectedComplaint.severity > 8 ? 'text-red-500' : 'text-[#00f5ff]'}`}>{selectedComplaint.severity * 10}%</span>
                           <span className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Risk Factor</span>

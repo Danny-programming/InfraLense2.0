@@ -91,7 +91,7 @@ const MapSearch: React.FC = () => {
   const triggerLocate = useMapStore(s => s.triggerLocate);
 
   const handleLocateMe = () => {
-    toast.loading('Synchronizing GPS neural link...', { id: 'locate-me' });
+    toast.loading('Synchronizing GPS location...', { id: 'locate-me' });
     triggerLocate();
     setQuery('My Current Location');
     // Ensure the toast is dismissed after a timeout in case no location is found

@@ -70,7 +70,7 @@ const MapController = () => {
       console.warn('[MapController] GPS failure:', e.message);
       toast.dismiss('locate-me');
       if (locateTrigger > 0) {
-        toast.error('Neural link failed. Check permissions.');
+        toast.error('GPS connection failed. Check permissions.');
       }
     };
 
@@ -247,7 +247,7 @@ const InfraMap = () => {
                     <div className="p-3 min-w-[140px] space-y-2">
                       <div className="text-[9px] font-black uppercase tracking-widest text-white/40">{amenity}</div>
                       <div className="text-sm font-black italic uppercase text-white leading-tight">
-                        {el.tags?.name || 'Neural Node'}
+                        {el.tags?.name || 'Infrastructure Node'}
                       </div>
                     </div>
                   </Popup>

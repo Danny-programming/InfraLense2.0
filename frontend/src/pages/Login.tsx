@@ -21,7 +21,7 @@ const Login: React.FC = () => {
       const res = await axios.post(import.meta.env.VITE_API_URL + '/api/auth/login', { email, password });
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
-      toast.success('Neural Link Established');
+      toast.success('Secure Link Established');
       if (res.data.user.role === 'ADMIN') {
         navigate('/admin');
       } else {
@@ -45,7 +45,7 @@ const Login: React.FC = () => {
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3">
             <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--accent)]">Neural Status: SECURE</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--accent)]">System Status: SECURE</span>
           </div>
           <div className="flex items-center gap-3">
             <Activity className="text-white/20" size={12} />
@@ -89,7 +89,7 @@ const Login: React.FC = () => {
           </motion.div>
 
           <h2 className="text-4xl font-black uppercase italic tracking-tighter mb-4 leading-none text-white">
-            Establish <span className="text-[var(--accent)]">Neural Link</span>
+            Establish <span className="text-[var(--accent)]">Secure Link</span>
           </h2>
           <p className="text-[11px] font-bold text-white/30 uppercase tracking-[0.3em] max-w-[320px] mx-auto leading-relaxed">
             Access the high-fidelity infrastructure intelligence OS
