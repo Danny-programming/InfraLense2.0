@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { scaleIn } from '../lib/animations';
 import GlassCard from '../components/ui/GlassCard';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, ArrowLeft, ShieldCheck, Activity, Cpu } from 'lucide-react';
+import { Mail, Lock, ArrowLeft, ShieldCheck, Activity, Cpu, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,26 +41,7 @@ const Login: React.FC = () => {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px]" />
       </div>
 
-      {/* Floating HUD Elements */}
-      <div className="absolute top-10 left-10 hidden lg:block opacity-40 pointer-events-none">
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--accent)]">System Status: SECURE</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Activity className="text-white/20" size={12} />
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">Data Parity: 99.4%</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="absolute bottom-10 right-10 hidden lg:block opacity-40 pointer-events-none">
-        <div className="text-right">
-          <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 mb-2 font-serif italic text-sm">"Intelligence is the ability to adapt to change."</h4>
-          <span className="text-[9px] font-black uppercase tracking-widest text-[var(--accent)]">— AL System v2.0</span>
-        </div>
-      </div>
+      {/* Removed Floating HUD Elements */}
 
       <Link to="/" className="absolute top-10 left-10 lg:left-1/2 lg:-translate-x-[500px] flex items-center gap-4 text-[var(--text-secondary)] hover:text-white transition-all group z-50">
         <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-white/10 transition-colors">
@@ -111,7 +93,7 @@ const Login: React.FC = () => {
                   type="email"
                   required
                   placeholder="user@infra.com"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-4.5 pl-14 pr-6 text-sm text-white focus:border-[var(--accent)]/40 focus:bg-white/10 focus:outline-none transition-all placeholder:text-white/10 font-bold tracking-tight relative z-10"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-14 pr-6 text-lg text-white focus:border-[var(--accent)]/40 focus:bg-white/10 focus:outline-none transition-all placeholder:text-white/10 font-bold tracking-tight relative z-10"
                 />
               </div>
             </div>
@@ -124,11 +106,18 @@ const Login: React.FC = () => {
                 <input
                   id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   placeholder="••••••••"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-4.5 pl-14 pr-6 text-sm text-white focus:border-[var(--accent)]/40 focus:bg-white/10 focus:outline-none transition-all placeholder:text-white/10 font-bold tracking-tight relative z-10"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-14 pr-12 text-lg text-white focus:border-[var(--accent)]/40 focus:bg-white/10 focus:outline-none transition-all placeholder:text-white/10 font-bold tracking-tight relative z-10"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-5 top-1/2 -translate-y-1/2 text-[var(--accent)]/40 hover:text-[var(--accent)] transition-colors z-20"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
               </div>
             </div>
 
@@ -156,9 +145,6 @@ const Login: React.FC = () => {
             Hardware Key Required for Level 5 Access
           </div>
 
-          <p className="text-center text-[var(--text-secondary)] text-sm font-medium tracking-tight">
-            Unauthorized access will be logged. <a href="#" className="text-[var(--accent)] font-bold hover:underline ml-2">Request Agency Credential</a>
-          </p>
         </div>
       </motion.div>
     </div>

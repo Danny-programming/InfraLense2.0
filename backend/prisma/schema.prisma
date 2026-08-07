@@ -65,6 +65,7 @@ model Complaint {
   id          String   @id @default(cuid())
   category    String
   description String?
+  locationName String?
   imageUrl    String
   latitude    Float
   longitude   Float

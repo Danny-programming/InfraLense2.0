@@ -14,9 +14,11 @@ import {
   Navigation,
   MapPin,
   RotateCw,
-  Terminal
+  Terminal,
+  ShieldCheck
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import HolographicCityMap from '../components/ui/HolographicCityMap';
 import toast from 'react-hot-toast';
 import { Waves } from '../components/ui/wave-background';
 
@@ -38,8 +40,7 @@ const Landing: React.FC = () => {
     '[SCANNING SECTOR: 676-U]',
     '[SYSTEM PARITY: OPTIMIZED]',
   ]);
-  const [clearanceId, setClearanceId] = useState('');
-  const [isAuthorizing, setIsAuthorizing] = useState(false);
+
 
   useEffect(() => {
     setDisplayedStability(0);
@@ -91,16 +92,7 @@ const Landing: React.FC = () => {
     return () => clearInterval(logInterval);
   }, [activeSectorIndex]);
 
-  const handleClearance = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!clearanceId) return;
-    setIsAuthorizing(true);
-    setTimeout(() => {
-      setIsAuthorizing(false);
-      toast.success('Clearance Authorized. Establishing Link.');
-      navigate('/login');
-    }, 1500);
-  };
+
 
   return (
     <div className="min-h-screen bg-[#020812] text-white relative overflow-hidden landing-font selection:bg-[var(--accent)] selection:text-black font-sans">
@@ -217,227 +209,7 @@ const Landing: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-[#0a1120]/80 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.6)] flex flex-col md:flex-row min-h-[480px] relative">
-              {/* Corner tech accents */}
-              <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-white/10 rounded-tl-3xl pointer-events-none" />
-              <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-white/10 rounded-tr-3xl pointer-events-none" />
-              <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-white/10 rounded-bl-3xl pointer-events-none" />
-              <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-white/10 rounded-br-3xl pointer-events-none" />
-
-              {/* Left Panel: Logs & Stats */}
-              <div className="w-full md:w-[45%] p-10 border-r border-white/5 flex flex-col justify-between bg-gradient-to-b from-white/[0.01] to-transparent">
-                <div className="space-y-8">
-                  <div className="flex items-center justify-between text-white/40">
-                    <div className="flex items-center gap-3">
-                      <ChevronRight size={16} style={{ color: SECTORS[activeSectorIndex].color }} className="animate-pulse" />
-                      <h4 className="text-[9px] font-black uppercase tracking-[0.4em]">Macro System Telemetry</h4>
-                    </div>
-                    <span 
-                      style={{
-                        color: SECTORS[activeSectorIndex].color,
-                        backgroundColor: SECTORS[activeSectorIndex].color + '15',
-                        borderColor: SECTORS[activeSectorIndex].color + '30'
-                      }}
-                      className="text-[8px] font-mono font-bold px-2.5 py-0.5 rounded border animate-pulse"
-                    >
-                      LIVE FEED
-                    </span>
-                  </div>
-
-                  <div className="space-y-3 font-mono text-[10px]">
-                    <AnimatePresence mode="popLayout">
-                      {logs.map((log, i) => {
-                        let textColor = "text-white/80";
-                        let dotColor = "bg-[var(--accent)]";
-                        let dotStyle = {};
-                        if (log.includes("OPTIMIZED")) {
-                          textColor = "text-emerald-400 drop-shadow-[0_0_6px_rgba(16,185,129,0.3)]";
-                          dotColor = "bg-emerald-500";
-                        } else if (log.includes("GAP")) {
-                          textColor = "text-amber-400 drop-shadow-[0_0_6px_rgba(245,158,11,0.3)]";
-                          dotColor = "bg-amber-500";
-                        } else if (log.includes("SCANNING") || log.includes("SAT LINK") || log.includes("DRIFT") || log.includes("PACKETS")) {
-                          textColor = "font-semibold";
-                          dotStyle = { backgroundColor: SECTORS[activeSectorIndex].color };
-                          textColor = "drop-shadow-[0_0_6px_" + SECTORS[activeSectorIndex].color + "40]";
-                        }
-                        
-                        return (
-                          <motion.div
-                            key={log + i}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1 - i * 0.1, x: 0 }}
-                            className="flex items-center gap-3 py-2 border-b border-white/[0.02] last:border-0"
-                          >
-                            <span className="text-white/20 font-bold w-4">{i + 1}</span>
-                            <span 
-                              style={dotStyle} 
-                              className={`w-1.5 h-1.5 rounded-full ${dotStyle ? '' : dotColor} animate-pulse`} 
-                            />
-                            <span 
-                              style={log.includes("OPTIMIZED") || log.includes("GAP") ? {} : { color: SECTORS[activeSectorIndex].color }} 
-                              className={`font-bold uppercase tracking-widest ${textColor}`}
-                            >
-                              {log}
-                            </span>
-                          </motion.div>
-                        );
-                      })}
-                    </AnimatePresence>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-6 pt-8 mt-8 border-t border-white/5">
-                  <div className="space-y-2 bg-white/[0.02] border border-white/5 p-4 rounded-2xl hover:border-white/20 hover:bg-white/[0.04] transition-all">
-                    <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.3em]">Global Stability</p>
-                    <p className="text-4xl font-black italic tracking-tighter text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">
-                      {displayedStability}%
-                    </p>
-                  </div>
-                  <div className="space-y-2 bg-white/[0.02] border border-white/5 p-4 rounded-2xl hover:border-white/20 hover:bg-white/[0.04] transition-all">
-                    <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.3em]">System Parity</p>
-                    <p 
-                      style={{ 
-                        color: SECTORS[activeSectorIndex].color,
-                        textShadow: `0 0 20px ${SECTORS[activeSectorIndex].color}80` 
-                      }} 
-                      className="text-4xl font-black italic tracking-tighter animate-pulse"
-                    >
-                      ACTIVE
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Panel: Holographic Globe & Radar */}
-              <div className="flex-1 p-10 relative flex items-center justify-center bg-gradient-to-br from-white/[0.02] to-transparent overflow-hidden">
-                {/* Background scanning lines */}
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.01),transparent_70%)]" />
-                <div className="absolute inset-0 bg-grid-cyan opacity-10 pointer-events-none" />
-
-                {/* Radar System rings & sweep */}
-                <div className="relative z-10 flex items-center justify-center w-80 h-80">
-                  {/* Sweep gradient radar cone */}
-                  <svg className="absolute inset-0 w-full h-full animate-[spin_10s_linear_infinite] pointer-events-none" viewBox="0 0 200 200">
-                    <defs>
-                      <linearGradient id={`radarSweep-${activeSectorIndex}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor={SECTORS[activeSectorIndex].color} stopOpacity="0.25" />
-                        <stop offset="50%" stopColor={SECTORS[activeSectorIndex].color} stopOpacity="0.05" />
-                        <stop offset="100%" stopColor={SECTORS[activeSectorIndex].color} stopOpacity="0" />
-                      </linearGradient>
-                    </defs>
-                    <path d="M 100 100 L 100 0 A 100 100 0 0 1 200 100 Z" fill={`url(#radarSweep-${activeSectorIndex})`} />
-                  </svg>
-
-                  {/* Concentric rings rotating differently */}
-                  <div 
-                    style={{ borderColor: SECTORS[activeSectorIndex].color + '15' }} 
-                    className="absolute inset-0 border rounded-full animate-[spin_40s_linear_infinite_reverse]" 
-                  />
-                  <div 
-                    style={{ borderColor: SECTORS[activeSectorIndex].color + '30' }} 
-                    className="absolute inset-4 border border-dashed rounded-full animate-[spin_25s_linear_infinite]" 
-                  />
-                  <div 
-                    style={{ borderColor: SECTORS[activeSectorIndex].color + '40' }} 
-                    className="absolute inset-10 border border-dotted rounded-full animate-[spin_15s_linear_infinite_reverse]" 
-                  />
-                  <div 
-                    style={{ borderColor: SECTORS[activeSectorIndex].color + '10' }} 
-                    className="absolute inset-16 border-2 rounded-full" 
-                  />
-
-                  {/* Globe Core */}
-                  <div 
-                    style={{ 
-                      borderColor: SECTORS[activeSectorIndex].color + '40',
-                      backgroundColor: SECTORS[activeSectorIndex].color + '05',
-                      boxShadow: `inset 0 0 30px ${SECTORS[activeSectorIndex].color}15`
-                    }} 
-                    className="w-48 h-48 rounded-full border flex items-center justify-center relative overflow-hidden group/globe"
-                  >
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.02),transparent_70%)]" />
-                    
-                    {/* Globe wireframe vector path */}
-                    <svg className="absolute w-full h-full" style={{ color: SECTORS[activeSectorIndex].color + '60' }} viewBox="0 0 100 100">
-                      {/* Flowing animated wave pathways */}
-                      <motion.path 
-                        d="M -20,50 Q 15,30 50,50 T 120,50" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="2" 
-                        animate={{ strokeDashoffset: [0, -100] }}
-                        transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
-                        style={{ strokeDasharray: "8 4" }}
-                      />
-                      <motion.path 
-                        d="M -20,62 Q 15,42 50,62 T 120,62" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="2" 
-                        animate={{ strokeDashoffset: [0, -100] }}
-                        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                        style={{ strokeDasharray: "12 6" }}
-                      />
-                      <motion.path 
-                        d="M -20,38 Q 15,18 50,38 T 120,38" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="2" 
-                        animate={{ strokeDashoffset: [0, -100] }}
-                        transition={{ duration: 7, repeat: Infinity, ease: "linear" }}
-                        style={{ strokeDasharray: "6 3" }}
-                      />
-
-                      {/* Main globe circle contours */}
-                      <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ color: SECTORS[activeSectorIndex].color }} />
-                      <path d="M 35 38 C 42 42, 42 58, 35 62" fill="none" stroke="currentColor" strokeWidth="2" />
-                      <path d="M 65 38 C 58 42, 58 58, 65 62" fill="none" stroke="currentColor" strokeWidth="2" />
-                      <path d="M 50 20 C 50 35, 50 65, 50 80" fill="none" stroke="currentColor" strokeWidth="1.5" />
-                      <path d="M 20 50 C 35 50, 65 50, 80 50" fill="none" stroke="currentColor" strokeWidth="1.5" />
-                    </svg>
-
-                    {/* Glowing coordinate blips */}
-                    <div className="absolute top-1/4 left-1/3 w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-                    <div className="absolute top-1/4 left-1/3 w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_#34d399]" />
-                    
-                    <div className="absolute bottom-1/3 right-1/4 w-2 h-2 rounded-full bg-red-400 animate-ping" />
-                    <div className="absolute bottom-1/3 right-1/4 w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_#f87171]" />
-
-                    <div 
-                      style={{ backgroundColor: SECTORS[activeSectorIndex].color, boxShadow: `0 0 15px ${SECTORS[activeSectorIndex].color}` }}
-                      className="absolute top-1/2 right-1/3 w-3.5 h-3.5 rounded-full animate-ping" 
-                    />
-                    <div 
-                      style={{ backgroundColor: SECTORS[activeSectorIndex].color, boxShadow: `0 0 10px ${SECTORS[activeSectorIndex].color}` }}
-                      className="absolute top-1/2 right-1/3 w-3.5 h-3.5 rounded-full" 
-                    />
-                  </div>
-                </div>
-
-                {/* Region Metadata from image */}
-                <div 
-                  style={{ borderColor: SECTORS[activeSectorIndex].color + '20' }}
-                  className="absolute bottom-8 left-8 right-8 p-4 bg-white/[0.02] backdrop-blur-xl border rounded-2xl flex justify-between items-center group/meta hover:bg-white/[0.04] transition-all shadow-[0_0_30px_rgba(0,0,0,0.3)]"
-                >
-                  <div className="flex items-center gap-3">
-                    <Cpu size={14} style={{ color: SECTORS[activeSectorIndex].color }} className="animate-[spin_6s_linear_infinite]" />
-                    <div className="flex flex-col">
-                      <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/80">
-                        Targeting {SECTORS[activeSectorIndex].name}
-                      </span>
-                      <span className="text-[7px] font-mono font-bold text-white/40 tracking-wider">
-                        LOC: {SECTORS[activeSectorIndex].coords}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[7px] font-mono font-bold text-emerald-400 animate-pulse uppercase">Synced</span>
-                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_#10b981]" />
-                  </div>
-                </div>
-              </div>
-            </div>
+            <HolographicCityMap activeColor={SECTORS[activeSectorIndex].color} />
           </motion.div>
         </div>
       </section>
@@ -471,71 +243,94 @@ const Landing: React.FC = () => {
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="max-w-4xl mx-auto relative z-10"
+          className="max-w-6xl mx-auto relative z-10 text-center py-32"
         >
-          <div className="w-20 h-20 bg-white/5 rounded-3xl border border-white/10 flex items-center justify-center mx-auto mb-10 shadow-2xl group cursor-pointer hover:border-[var(--accent)]/40 transition-all">
-            <Fingerprint size={40} className="text-white group-hover:text-[var(--accent)] transition-colors" />
+          {/* Intense Background Glow */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-[var(--accent)]/10 blur-[120px] rounded-full pointer-events-none" />
+
+          {/* Floating HUD Cards */}
+          <div className="absolute top-10 left-10 hidden md:block">
+            <motion.div 
+              animate={{ y: [0, -10, 0] }} 
+              transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+              className="p-4 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center gap-4 shadow-[0_0_30px_rgba(0,245,255,0.1)]"
+            >
+              <div className="w-10 h-10 rounded-full bg-[var(--accent)]/20 flex items-center justify-center border border-[var(--accent)]/30">
+                <Activity size={16} className="text-[var(--accent)]" />
+              </div>
+              <div className="text-left">
+                <div className="text-[9px] font-black uppercase tracking-widest text-white/50">Active Agents</div>
+                <div className="text-lg font-black text-white font-mono">14,204</div>
+              </div>
+            </motion.div>
           </div>
 
-          <h2 className="text-6xl md:text-8xl font-black uppercase italic tracking-tighter text-white mb-10">
-            Request <span className="text-[var(--accent)]">Clearance</span>
-          </h2>
+          <div className="absolute bottom-40 right-10 hidden md:block">
+            <motion.div 
+              animate={{ y: [0, 10, 0] }} 
+              transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 1 }}
+              className="p-4 bg-black/40 backdrop-blur-xl border border-[var(--accent)]/30 rounded-2xl flex items-center gap-4 shadow-[0_0_30px_rgba(0,245,255,0.2)]"
+            >
+              <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+                <ShieldCheck size={16} className="text-[var(--accent)]" />
+              </div>
+              <div className="text-left">
+                <div className="text-[9px] font-black uppercase tracking-widest text-white/50">Threat Level</div>
+                <div className="text-lg font-black text-[var(--accent)] font-mono">NOMINAL</div>
+              </div>
+            </motion.div>
+          </div>
 
-          <p className="text-white/40 text-lg md:text-xl font-medium uppercase tracking-tight mb-20 max-w-2xl mx-auto leading-relaxed landing-font-body">
-            Establishing a regional oversight presence requires validated agency credentials. Complete your synchronization below.
+          <div className="relative inline-block mb-6">
+            <div className="absolute -inset-4 bg-[var(--accent)]/20 blur-2xl rounded-full" />
+            <h2 className="text-5xl md:text-8xl font-black uppercase italic tracking-tighter text-white relative z-10 drop-shadow-[0_0_20px_rgba(0,245,255,0.5)]">
+              Join the <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent)] to-white">Network</span>
+            </h2>
+          </div>
+          
+          <p className="text-white/60 text-lg md:text-xl font-medium uppercase tracking-widest mb-16 max-w-2xl mx-auto leading-relaxed landing-font-body relative z-10">
+            Empower your community. Report issues instantly, track resolutions in real-time, and help build a smarter, safer city.
           </p>
+          
+          <div className="relative z-20">
+            <Link to="/login" className="inline-block relative group">
+               <div className="absolute -inset-1 bg-gradient-to-r from-[var(--accent)] to-white rounded-3xl blur opacity-20 group-hover:opacity-60 transition duration-1000 group-hover:duration-200" />
+               <button className="relative px-12 py-6 bg-black text-white font-black uppercase text-sm tracking-[0.4em] rounded-3xl border border-white/10 hover:border-[var(--accent)] transition-all flex items-center justify-center gap-4 mx-auto overflow-hidden">
+                 <div className="absolute inset-0 bg-gradient-to-r from-[var(--accent)]/20 to-transparent -translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-out" />
+                 <span className="relative z-10 group-hover:text-[var(--accent)] transition-colors">Access Citizen Portal</span>
+                 <ChevronRight size={20} className="text-[var(--accent)] group-hover:translate-x-2 transition-transform relative z-10" />
+               </button>
+            </Link>
+          </div>
 
-          <div className="max-w-xl mx-auto p-1 bg-white/5 rounded-[2.5rem] border border-white/10 shadow-2xl relative">
-            <div className="bg-[#020812] rounded-[2.3rem] p-10">
-              <AnimatePresence mode="wait">
-                {!isAuthorizing ? (
-                  <motion.form
-                    key="form"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onSubmit={handleClearance}
-                    className="flex flex-col gap-8"
-                  >
-                    <div className="space-y-4 text-left">
-                      <label className="text-[9px] font-black uppercase tracking-[0.4em] text-white/20 ml-2">Agency Clearance ID</label>
-                      <input
-                        type="text"
-                        value={clearanceId}
-                        onChange={(e) => setClearanceId(e.target.value)}
-                        required
-                        placeholder="SEC-ALPHA-2026-N"
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-6 px-8 text-sm text-white focus:border-[var(--accent)] focus:bg-white/10 focus:outline-none transition-all placeholder:text-white/10 font-bold"
-                      />
+          {/* Live Activity Ticker */}
+          <div className="mt-32 w-full overflow-hidden relative opacity-70 hover:opacity-100 transition-opacity duration-500 bg-black/20 py-4 border-y border-white/5 backdrop-blur-md">
+            <div className="absolute inset-y-0 left-0 w-48 bg-gradient-to-r from-[#020812] to-transparent z-10 pointer-events-none" />
+            <div className="absolute inset-y-0 right-0 w-48 bg-gradient-to-l from-[#020812] to-transparent z-10 pointer-events-none" />
+            
+            <motion.div
+              animate={{ x: [0, -1500] }}
+              transition={{ repeat: Infinity, ease: "linear", duration: 30 }}
+              className="flex gap-8 whitespace-nowrap w-max"
+            >
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex gap-8">
+                  {[
+                    'STREETLIGHT OUTAGE REPORTED IN SECTOR 7', 
+                    'WATER MAIN LEAK RESOLVED IN SECTOR 2', 
+                    'NEW CITIZEN REGISTRATION: SEC-99', 
+                    'POTHOLE LOGGED BY USER_492', 
+                    'TRAFFIC SIGNAL FAILURE: INVESTIGATING', 
+                    'COMMUNITY PETITION REACHED 1000 SIGNATURES'
+                  ].map((event, j) => (
+                    <div key={j} className="flex items-center gap-3 bg-white/5 border border-white/10 px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-[0.3em] text-[var(--accent)] shadow-[0_0_15px_rgba(0,245,255,0.1)]">
+                      <div className="w-2 h-2 rounded-full bg-white animate-ping" />
+                      {event}
                     </div>
-                    <button
-                      type="submit"
-                      className="w-full py-6 bg-white text-black font-black uppercase text-xs tracking-[0.4em] rounded-2xl hover:bg-[var(--accent)] hover:shadow-[0_0_30px_rgba(0,245,255,0.4)] transition-all flex items-center justify-center gap-4 group"
-                    >
-                      Initialize Oversight Link
-                      <ChevronRight size={18} className="group-hover:translate-x-2 transition-transform" />
-                    </button>
-                  </motion.form>
-                ) : (
-                  <motion.div
-                    key="loading"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="py-12 flex flex-col items-center gap-6"
-                  >
-                    <div className="relative w-20 h-20">
-                      <div className="absolute inset-0 border-2 border-[var(--accent)]/10 rounded-full" />
-                      <div className="absolute inset-0 border-2 border-[var(--accent)] rounded-full border-t-transparent animate-spin" />
-                      <Fingerprint size={32} className="absolute inset-0 m-auto text-[var(--accent)] animate-pulse" />
-                    </div>
-                    <div className="text-center">
-                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--accent)] mb-2">Authorizing Credentials</p>
-                      <p className="text-xs text-white/40 font-medium tracking-tight">Establishing Satellite Link...</p>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                  ))}
+                </div>
+              ))}
+            </motion.div>
           </div>
         </motion.div>
       </section>

@@ -9,6 +9,7 @@ import AdminAnalytics from './pages/admin/AdminAnalytics';
 import CitizenManagement from './pages/admin/CitizenManagement';
 import AuditTrail from './pages/admin/AuditTrail';
 import AdminAnnouncements from './pages/admin/AdminAnnouncements';
+import AdminProjectLifecycle from './pages/admin/AdminProjectLifecycle';
 import { Toaster } from 'react-hot-toast';
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
         <Route path="/admin/citizens" element={<CitizenManagement />} />
         <Route path="/admin/audit" element={<AuditTrail />} />
         <Route path="/admin/announcements" element={<AdminAnnouncements />} />
+        <Route path="/admin/lifecycle" element={<AdminProjectLifecycle />} />
       </Routes>
     </Router>
   );

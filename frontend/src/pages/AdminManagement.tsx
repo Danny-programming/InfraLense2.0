@@ -18,7 +18,8 @@ import {
   Users,
   BarChart3,
   Globe,
-  Server
+  Server,
+  ArrowRight
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
@@ -45,6 +46,7 @@ const AdminManagement: React.FC = () => {
   const [uptimeStr, setUptimeStr] = useState('00:00:00');
   const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
   const [rejectionCase, setRejectionCase] = useState<{ id: string, title: string, type: 'PETITION' | 'COMPLAINT' } | null>(null);
+  const [complaintAddress, setComplaintAddress] = useState<string>("Locating geospatial origin...");
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -123,6 +125,23 @@ const AdminManagement: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (selectedComplaint) {
+      setComplaintAddress("Locating geospatial origin...");
+      const lat = selectedComplaint.latitude;
+      const lng = selectedComplaint.longitude;
+      axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`, {
+        headers: { 'User-Agent': 'Infralense-Agent-V4' }
+      }).then(res => {
+        if (res.data && res.data.display_name) {
+          setComplaintAddress(res.data.display_name);
+        } else {
+          setComplaintAddress("Address unavailable for these coordinates");
+        }
+      }).catch(() => setComplaintAddress("Failed to retrieve address data"));
+    }
+  }, [selectedComplaint]);
+
   const currentData = activeQueue === 'petitions' ? petitions : complaints;
 
   const pendingCount = currentData.filter(p => p.status === 'PENDING').length;
@@ -156,60 +175,40 @@ const AdminManagement: React.FC = () => {
             <p className="text-white/40 text-[10px] uppercase tracking-[0.4em] font-bold">National Infrastructure Intelligence Oversight (STABLE)</p>
           </div>
         </div>
-        <div className="flex gap-2 items-center flex-wrap">
-          <Link to="/admin/analytics" className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-[var(--accent)] transition-all text-[9px] font-black uppercase tracking-widest flex items-center gap-2">
+        <div className="flex gap-1.5 items-center flex-wrap justify-end">
+          <Link to="/admin/analytics" className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-[var(--accent)] transition-all text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5">
             <BarChart3 size={12} /> Analytics
           </Link>
-          <Link to="/admin/citizens" className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-[var(--accent)] transition-all text-[9px] font-black uppercase tracking-widest flex items-center gap-2">
+          <Link to="/admin/citizens" className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-[var(--accent)] transition-all text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5">
             <Users size={12} /> Citizens
           </Link>
-          <Link to="/admin/audit" className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-[var(--accent)] transition-all text-[9px] font-black uppercase tracking-widest flex items-center gap-2">
+          <Link to="/admin/audit" className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-[var(--accent)] transition-all text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5">
             <ShieldCheck size={12} /> Audit
           </Link>
-          <Link to="/admin/announcements" className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-[var(--accent)] transition-all text-[9px] font-black uppercase tracking-widest flex items-center gap-2">
+          <Link to="/admin/lifecycle" className="px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500 hover:text-black transition-all text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5 text-emerald-400 hover:border-emerald-500">
+            <Activity size={12} /> Active Projects
+          </Link>
+          <div className="w-px h-5 bg-white/10 mx-0.5" />
+          <Link to="/admin/announcements" className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-[var(--accent)] transition-all text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5">
             <Globe size={12} /> Broadcast
           </Link>
-          <div className="w-px h-6 bg-white/10 mx-1" />
-          <Link to="/dashboard" className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-[var(--accent)] transition-all text-[9px] font-black uppercase tracking-widest flex items-center gap-2">
+          <div className="w-px h-5 bg-white/10 mx-0.5" />
+          <Link to="/dashboard" className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-[var(--accent)] transition-all text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5">
             <MapIcon size={12} /> Intel Map
           </Link>
           <button
             onClick={handleLogout}
-            className="px-4 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500 hover:text-black transition-all text-[9px] font-black uppercase tracking-widest flex items-center gap-2 text-red-400 hover:border-red-500"
+            className="px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500 hover:text-black transition-all text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5 text-red-400 hover:border-red-500"
           >
             <LogOut size={12} /> Logout
           </button>
-          <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center font-black text-[var(--accent)] text-xs">
+          <div className="w-9 h-9 ml-1 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center font-black text-[var(--accent)] text-xs">
             AD
           </div>
         </div>
       </header>
 
-      {/* System Health Bar */}
-      <div className="mb-8 p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex items-center justify-between gap-6 overflow-x-auto">
-        <div className="flex items-center gap-3 shrink-0">
-          <Server size={14} className="text-emerald-400" />
-          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/30">System Status</span>
-          <span className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-md text-emerald-400 text-[9px] font-black uppercase">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Online
-          </span>
-        </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <Zap size={14} className="text-amber-400" />
-          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/30">Uptime</span>
-          <span className="font-mono text-xs font-bold text-[var(--accent)]">{uptimeStr}</span>
-        </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <Globe size={14} className="text-blue-400" />
-          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/30">Region</span>
-          <span className="text-[10px] font-black text-white/60">INDIA — SOUTH ASIA</span>
-        </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <Users size={14} className="text-purple-400" />
-          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/30">Active Citizens</span>
-          <span className="text-[10px] font-black text-white/60">{petitions.length > 0 ? new Set(petitions.map(p => p.creatorId)).size : 0}</span>
-        </div>
-      </div>
+
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -407,45 +406,50 @@ const AdminManagement: React.FC = () => {
                         onClick={() => isPetition ? setSelectedPetition(item) : setSelectedComplaint(item)}
                         className="border-b border-white/5 hover:bg-white/[0.04] cursor-pointer transition-colors group"
                       >
-                        <td className="p-6 group-hover:pl-8 transition-all">
+                        <td className="p-3 group-hover:pl-4 transition-all w-1/3">
                           <div className="flex flex-col">
-                            <span className="font-black italic text-white uppercase tracking-tight">{isPetition ? item.locationName : item.category}</span>
-                            <span className="text-[9px] text-white/20 font-bold tracking-widest uppercase mt-1">ID: {item.id.slice(-8)}</span>
+                            <span className="font-bold text-white uppercase tracking-tight text-xs truncate max-w-[250px]">{isPetition ? item.locationName : item.category}</span>
+                            <span className="text-[8px] text-white/30 font-bold tracking-widest uppercase">ID: {item.id.slice(-8)}</span>
                           </div>
                         </td>
-                        <td className="p-6">
-                          <div className="flex flex-col items-center gap-2">
-                            <div className="w-24 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <td className="p-3 w-1/4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-16 h-1 bg-white/10 rounded-full overflow-hidden flex-1">
                               <div className={`h-full ${severityVal > 80 ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'bg-[var(--accent)] shadow-[0_0_10px_rgba(0,245,255,0.5)]'}`} style={{ width: `${severityVal}%` }}></div>
                             </div>
-                            <span className={`text-[10px] font-black ${severityVal > 80 ? 'text-red-400' : 'text-[var(--accent)]'}`}>{severityVal}%</span>
+                            <span className={`text-[9px] font-black w-8 text-right ${severityVal > 80 ? 'text-red-400' : 'text-[var(--accent)]'}`}>{Math.round(severityVal)}%</span>
                           </div>
                         </td>
-                        <td className="p-6">
-                          <div className="flex flex-col">
-                            <span className="text-xs font-black text-white/60">{item.creator?.name || 'CITIZEN-ANON'}</span>
-                            <span className="text-[9px] text-white/20 font-bold uppercase">{item.creator?.email}</span>
+                        <td className="p-3 w-1/4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center text-[var(--accent)] font-bold text-[9px] uppercase border border-white/10 shrink-0">
+                              {item.creator?.name?.[0] || 'U'}
+                            </div>
+                            <div className="flex flex-col overflow-hidden">
+                              <span className="text-[10px] font-black text-white/80 truncate">{item.creator?.name || 'Citizen-Anon'}</span>
+                              <span className="text-[8px] text-white/40 font-bold uppercase truncate">{item.creator?.email || 'N/A'}</span>
+                            </div>
                           </div>
                         </td>
-                        <td className="p-6">
-                          <div className="flex items-center justify-center gap-3">
+                        <td className="p-3">
+                          <div className="flex items-center justify-end gap-2">
                             {item.status === 'PENDING' ? (
                               <>
                                 <button
                                   onClick={(e) => { e.stopPropagation(); handleUpdateStatus(item.id, 'APPROVED', isPetition ? 'PETITION' : 'COMPLAINT'); }}
-                                  className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-[10px] font-black uppercase hover:bg-emerald-500 hover:text-black transition-all"
+                                  className="px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg text-[9px] font-black uppercase hover:bg-emerald-500 hover:text-black transition-all"
                                 >
-                                  <CheckCircle2 size={12} /> Approve
+                                  Approve
                                 </button>
                                 <button
                                   onClick={(e) => { e.stopPropagation(); handleUpdateStatus(item.id, 'REJECTED', isPetition ? 'PETITION' : 'COMPLAINT'); }}
-                                  className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-[10px] font-black uppercase hover:bg-red-500 hover:text-black transition-all"
+                                  className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-[9px] font-black uppercase hover:bg-red-500 hover:text-black transition-all"
                                 >
-                                  <XCircle size={12} /> Reject
+                                  Reject
                                 </button>
                               </>
                             ) : (
-                              <span className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest ${item.status === 'APPROVED' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'
+                              <span className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest ${item.status === 'APPROVED' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'
                                 }`}>
                                 {item.status}
                               </span>
@@ -583,7 +587,7 @@ const AdminManagement: React.FC = () => {
                 </section>
               </div>
 
-              {/* Modal Footer (PATCH V4 - FORCE LIFECYCLE) */}
+              {/* Modal Footer (PATCH V5 - UNIFIED LIFECYCLE) */}
               <div className="p-10 border-t border-white/5 flex flex-col gap-6 bg-white/[0.02]">
                 {selectedPetition.status === 'PENDING' ? (
                   <div className="flex gap-4">
@@ -607,71 +611,22 @@ const AdminManagement: React.FC = () => {
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-6 pt-4">
+                  <div className="space-y-6 pt-4 pb-4">
                     <div className="flex items-center justify-between">
                       <div className="flex flex-col gap-1">
-                        <h3 className="text-[10px] text-[var(--accent)] font-black uppercase tracking-[0.4em]">Life-Cycle Management (BMC Protocol)</h3>
-                        <p className="text-[8px] text-white/30 uppercase tracking-[0.2em]">Select stage to advance national deployment phase</p>
+                        <h3 className="text-[10px] text-[var(--accent)] font-black uppercase tracking-[0.4em]">Project Verified & Approved</h3>
+                        <p className="text-[8px] text-white/30 uppercase tracking-[0.2em]">Proceed to the dedicated command center for pipeline management.</p>
                       </div>
                       <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                         <span className="text-[8px] font-black uppercase text-emerald-400 tracking-widest">Active Pipeline</span>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                      {[1, 2, 3, 4, 5, 6, 7].map((s) => {
-                        const stageNames = ['Stage 1: Verified', 'Stage 2: AA Granted', 'Stage 3: Tech Sanction', 'Stage 4: Tendering', 'Stage 5: Work Order', 'Stage 6: Site Execution', 'Stage 7: Final Audit'];
-                        const isApproved = selectedPetition.updates?.some((u: any) => u.stage === s);
-                        return (
-                          <button
-                            key={s}
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              const token = localStorage.getItem('token');
-                              const stageData = [
-                                { title: 'Project Verified', desc: 'Case validated by Admin.' },
-                                { title: 'AA Granted', desc: 'Administrative Approval received.' },
-                                { title: 'TS Received', desc: 'Technical Sanction confirmed.' },
-                                { title: 'Tendering Active', desc: 'Contractor bidding initiated.' },
-                                { title: 'Work Order Issued', desc: 'Execution team assigned.' },
-                                { title: 'Site Execution', desc: 'Project under construction.' },
-                                { title: 'Audit & Completion', desc: 'Final audit completed.' },
-                              ][s-1];
-                              
-                                try {
-                                  await axios.post(import.meta.env.VITE_API_URL + '/api/projects/advance', {
-                                    caseId: selectedPetition.id,
-                                    type: 'petition',
-                                    stage: s,
-                                    title: stageData.title,
-                                    description: stageData.desc
-                                  }, { headers: { Authorization: `Bearer ${token}` } });
-                                  toast.success(`Approved: ${stageNames[s-1]}`, {
-                                    icon: '✅',
-                                    style: { background: '#064e3b', color: '#fff', border: '1px solid rgba(16,185,129,0.2)' }
-                                  });
-                                  fetchPetitions();
-                                } catch (err) {
-                                  toast.error('Failed to update stage.');
-                                }
-                            }}
-                            className={`py-4 px-3 rounded-[1.25rem] text-[9px] font-black uppercase tracking-tighter transition-all border text-left flex flex-col justify-center gap-1 ${
-                              isApproved
-                                ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.1)]'
-                                : s === 7 
-                                  ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400 hover:bg-indigo-500 hover:text-white'
-                                  : 'bg-white/5 border-white/5 text-white/40 hover:border-[var(--accent)]/50 hover:bg-[var(--accent)]/10 hover:text-white'
-                            }`}
-                          >
-                            <div className="flex justify-between items-center w-full">
-                              <span className="opacity-40 text-[7px] tracking-[0.2em]">PHASE 0{s}</span>
-                              {isApproved && <CheckCircle2 size={10} className="text-emerald-400" />}
-                            </div>
-                            {stageNames[s-1]}
-                          </button>
-                        );
-                      })}
-                    </div>
+                    
+                    <Link to="/admin/lifecycle" className="w-full flex items-center justify-center gap-3 py-5 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded-2xl text-[var(--accent)] hover:bg-[var(--accent)] hover:text-black transition-all group">
+                      <span className="text-xs font-black uppercase tracking-widest">Manage Execution Pipeline</span>
+                      <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                    </Link>
                   </div>
                 )}
               </div>
@@ -743,11 +698,18 @@ const AdminManagement: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="bg-white/[0.01] border border-white/5 rounded-3xl p-6 mt-4">
+                      <div className="bg-white/5 border border-white/5 rounded-3xl p-6">
                         <span className="text-[9px] uppercase font-black tracking-[0.3em] text-white/20 mb-2 block">Geospatial Origin</span>
-                        <p className="text-white/60 font-mono text-sm">LAT: {selectedComplaint.latitude}</p>
-                        <p className="text-white/60 font-mono text-sm">LNG: {selectedComplaint.longitude}</p>
-                        <p className="text-white/40 font-mono text-xs mt-2 italic text-[10px]">Reported by: {(selectedComplaint.creator && selectedComplaint.creator.name) ? selectedComplaint.creator.email : 'Citizen'}</p>
+                        <div className="space-y-1 mb-3">
+                          <div className="font-mono text-white/60 text-xs">LAT: {selectedComplaint.latitude}</div>
+                          <div className="font-mono text-white/60 text-xs">LNG: {selectedComplaint.longitude}</div>
+                        </div>
+                        <div className="text-sm font-medium italic text-[var(--accent)] bg-[var(--accent)]/10 p-3 rounded-xl border border-[var(--accent)]/20 leading-snug">
+                          {complaintAddress}
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-white/5 text-[10px] font-bold text-white/40 italic">
+                          Reported by: {selectedComplaint.creator?.email}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -785,68 +747,22 @@ const AdminManagement: React.FC = () => {
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-6 pt-4">
+                  <div className="space-y-6 pt-4 pb-4">
                     <div className="flex items-center justify-between">
                       <div className="flex flex-col gap-1">
-                        <h3 className="text-[10px] text-[var(--accent)] font-black uppercase tracking-[0.4em]">Life-Cycle Management (Incident Response)</h3>
-                        <p className="text-[8px] text-white/30 uppercase tracking-[0.2em]">Select stage to advance incident resolution phase</p>
+                        <h3 className="text-[10px] text-[var(--accent)] font-black uppercase tracking-[0.4em]">Report Verified & Approved</h3>
+                        <p className="text-[8px] text-white/30 uppercase tracking-[0.2em]">Proceed to the dedicated command center for incident resolution pipeline.</p>
                       </div>
                       <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-full">
                         <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
                         <span className="text-[8px] font-black uppercase text-amber-400 tracking-widest">Active deployment</span>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                      {[1, 2, 3, 4, 5, 6, 7].map((s) => {
-                        const stageNames = [
-                          'Stage 1: Analysis',
-                          'Stage 2: AA Budget',
-                          'Stage 3: Mobilization',
-                          'Stage 4: Dispatch',
-                          'Stage 5: Repair Active',
-                          'Stage 6: QC Inspection',
-                          'Stage 7: Resolution'
-                        ];
-                        return (
-                          <button
-                            key={s}
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              const token = localStorage.getItem('token');
-                              const stageData = [
-                                { title: 'Incident Verified', desc: 'On-site verification complete.' },
-                                { title: 'Work Approved', desc: 'Repair budget approved.' },
-                                { title: 'Teams Formed', desc: 'Maintenance crews assigned.' },
-                                { title: 'Deployment', desc: 'Materials dispatched to site.' },
-                                { title: 'Active Repair', desc: 'Fixing infrastructure in progress.' },
-                                { title: 'Post-Inspection', desc: 'Quality check of the repair.' },
-                                { title: 'Resolved', desc: 'Service restored successfully.' },
-                              ][s-1];
-                              
-                              try {
-                                await axios.post(import.meta.env.VITE_API_URL + '/api/projects/advance', {
-                                  caseId: selectedComplaint.id,
-                                  type: 'complaint',
-                                  stage: s,
-                                  title: stageData.title,
-                                  description: stageData.desc
-                                }, { headers: { Authorization: `Bearer ${token}` } });
-                                toast.success(`Advanced to ${stageNames[s-1]}`);
-                              } catch (err) {
-                                toast.error('Failed to update stage.');
-                              }
-                            }}
-                            className={`py-4 px-3 rounded-[1.25rem] text-[9px] font-black uppercase tracking-tighter transition-all border text-left flex flex-col justify-center gap-1 ${
-                              s === 7 ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400 hover:bg-indigo-500 hover:text-white' : 
-                              'bg-white/5 border-white/5 text-white/40 hover:border-[var(--accent)]/50 hover:bg-[var(--accent)]/10 hover:text-white'
-                            }`}
-                          >
-                            <span className="opacity-40 text-[7px] tracking-[0.2em]">PHASE 0{s}</span>
-                            {stageNames[s-1]}
-                          </button>
-                        );
-                      })}
-                    </div>
+                    
+                    <Link to="/admin/lifecycle" className="w-full flex items-center justify-center gap-3 py-5 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded-2xl text-[var(--accent)] hover:bg-[var(--accent)] hover:text-black transition-all group">
+                      <span className="text-xs font-black uppercase tracking-widest">Manage Resolution Pipeline</span>
+                      <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                    </Link>
                   </div>
                 )}
               </div>

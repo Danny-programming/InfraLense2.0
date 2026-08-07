@@ -53,6 +53,7 @@ import NotificationCenter from '../components/dashboard/NotificationCenter';
 import PetitionWizard from '../components/dashboard/PetitionWizard';
 import ReportIssueForm from '../components/dashboard/ReportIssueForm';
 import TrackProjectView from '../components/dashboard/TrackProjectView';
+import SettingsView from '../components/dashboard/SettingsView';
 
 const Dashboard: React.FC = () => {
   const { tileMode, setTileMode, primaryAnalysis, closeAnalysis, heatmap, activeFilters } = useMapStore();
@@ -447,6 +448,8 @@ Generated via InfraLense Platform
               </div>
             </div>
           </div>
+        ) : activeView === 'Settings' ? (
+          <SettingsView />
         ) : (
           <div className="flex-1 relative bg-[#020812]">
             {/* Search Bar - Catchy Floating Design */}
