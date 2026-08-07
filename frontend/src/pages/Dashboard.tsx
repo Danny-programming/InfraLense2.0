@@ -16,7 +16,8 @@ import {
   User,
   Download,
   ArrowLeft,
-  AlertTriangle
+  AlertTriangle,
+  Activity
 } from 'lucide-react';
 import {
   PieChart,
@@ -47,14 +48,61 @@ import ImpactDashboard from '../components/dashboard/ImpactDashboard';
 import NotificationCenter from '../components/dashboard/NotificationCenter';
 import PetitionWizard from '../components/dashboard/PetitionWizard';
 import ReportIssueForm from '../components/dashboard/ReportIssueForm';
+import TrackProjectView from '../components/dashboard/TrackProjectView';
 
 const Dashboard: React.FC = () => {
   const { tileMode, setTileMode, primaryAnalysis, closeAnalysis, heatmap, activeFilters } = useMapStore();
 
   const [activeView, setActiveView] = React.useState('Map');
+  const [selectedProjectId, setSelectedProjectId] = React.useState<string | null>(null);
   const [analysisView, setAnalysisView] = React.useState<'overview' | 'charts'>('overview');
+  const [category, setCategory] = React.useState('all');
   const [petitionText, setPetitionText] = React.useState<string | null>(null);
   const [isGenerating, setIsGenerating] = React.useState(false);
+
+  const categories = [
+    { id: 'all', name: 'All', icon: '🌐' },
+    { id: 'school', name: 'School', icon: '🎓' },
+    { id: 'bank', name: 'Bank', icon: '🏦' },
+    { id: 'finance', name: 'Finance', icon: '💰' },
+  ];
+
+  const handleDownload = () => {
+    if (!petitionText || !primaryAnalysis.data) return;
+    const content = `
+REFORM PETITION: ${primaryAnalysis.data.location.name}
+================================
+
+Category: ${category.toUpperCase()}
+Date: ${new Date().toLocaleDateString()}
+Severity Index: ${(primaryAnalysis.data.severity * 100).toFixed(0)}%
+Affected Population: ${primaryAnalysis.data.population.toLocaleString()}
+
+--------------------------------
+CASE BRIEFING:
+${petitionText}
+
+--------------------------------
+Generated via InfraLense Neural Link (Gemini AI)
+`;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `InfraLense_Reform_${category}_${primaryAnalysis.data.location.name.replace(/\s+/g, '_')}.txt`;
+    a.click();
+  };
+
+  React.useEffect(() => {
+    // Force a fresh location sync on dashboard entry to ensure we take the user to their location
+    // This resolves issues where redirects from login might prevent the auto-locate from firing reliably
+    const store = useMapStore.getState();
+    if (!store.focalLocation && !store.pingLocation) {
+      console.log('[Dashboard] Initial entry: Triggering regional sync...');
+      toast.loading('Synchronizing GPS neural link...', { id: 'locate-me' });
+      store.triggerLocate();
+    }
+  }, []);
 
   const handleGeneratePetition = async () => {
     if (!primaryAnalysis.data) return;
@@ -63,6 +111,7 @@ const Dashboard: React.FC = () => {
       const res = await axios.post(import.meta.env.VITE_API_URL + '/api/analysis/generate-petition', {
         data: {
           locationName: primaryAnalysis.data.location.name,
+          category: category,
           population: primaryAnalysis.data.population,
           schools: primaryAnalysis.data.gaps.schools,
           hospitals: primaryAnalysis.data.gaps.hospitals,
@@ -79,6 +128,7 @@ const Dashboard: React.FC = () => {
   };
 
   const navItems: { icon: React.ReactNode, label: string, view?: string, onClick?: () => void }[] = [
+    { icon: <Activity size={20} className="text-[var(--accent)]" />, label: 'LIFECYCLE TRACKER', view: 'Monitor' },
     { icon: <MapIcon size={20} />, label: 'Explorer', view: 'Map' },
     { icon: <FileText size={20} />, label: 'Petitions', view: 'Petitions' },
     { icon: <BarChart3 size={20} />, label: 'Analytics', view: 'Analytics' },
@@ -96,21 +146,18 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="h-screen w-full bg-[#020812] text-white flex flex-col overflow-hidden selection:bg-[var(--accent)] selection:text-black font-sans">
-      {/* Top Header */}
       <header className="h-14 border-b border-white/5 bg-[#050b16] flex items-center justify-between px-6 z-[1001] relative">
         <div className="flex items-center gap-4">
           <Link to="/" className="hover:opacity-80 transition-opacity">
-            <img
-              src="/logo.png"
-              alt="Logo"
-              className="h-12 w-12 rounded-full aspect-square object-cover filter brightness-125 border-2 border-[var(--accent)]/20 shadow-[0_0_15px_rgba(0,245,255,0.2)]"
-            />
+            <div className="w-10 h-10 bg-[var(--accent)] rounded-xl flex items-center justify-center rotate-3 shadow-[0_0_20px_rgba(0,245,255,0.4)]">
+              <Activity className="text-black" size={20} />
+            </div>
           </Link>
           <div className="flex flex-col">
             <h1 className="text-lg font-black tracking-tighter uppercase italic flex items-center gap-2">
               Infra<span className="text-[var(--accent)]">Lense</span>
             </h1>
-            <span className="text-[9px] uppercase font-bold text-[var(--accent)] tracking-[0.3em] opacity-60">Intelligence OS v2.0</span>
+            <span className="text-[9px] uppercase font-bold text-[var(--accent)] tracking-[0.3em] opacity-60">LIFECYCLE SYNC ACTIVE - v2.0</span>
           </div>
         </div>
 
@@ -187,7 +234,7 @@ const Dashboard: React.FC = () => {
 
         {/* View Content */}
         {activeView === 'Petitions' ? (
-          <MyPetitions />
+          <MyPetitions onTrack={(id) => { setSelectedProjectId(id); setActiveView('Monitor'); }} />
         ) : activeView === 'ReportIssue' ? (
           <ReportIssueForm />
         ) : activeView === 'Community' ? (
@@ -198,6 +245,8 @@ const Dashboard: React.FC = () => {
           <NotificationCenter />
         ) : activeView === 'Wizard' ? (
           <PetitionWizard />
+        ) : activeView === 'Monitor' ? (
+          <TrackProjectView initialSelectedId={selectedProjectId} onClearSelection={() => setSelectedProjectId(null)} />
         ) : activeView === 'Analytics' ? (
           <div className="flex-1 overflow-y-auto custom-scrollbar p-10 bg-[#020812]">
             <div className="max-w-6xl mx-auto space-y-12">
@@ -325,7 +374,7 @@ const Dashboard: React.FC = () => {
 
         {/* AI Analytics Side Panel */}
         <AnimatePresence>
-          {primaryAnalysis.data && activeView === 'Map' && (
+          {(primaryAnalysis.data || primaryAnalysis.loading) && activeView === 'Map' && (
             <motion.aside
               variants={slideIn}
               initial="hidden"
@@ -363,17 +412,39 @@ const Dashboard: React.FC = () => {
                   ) : analysisView === 'overview' ? (
                     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-500">
                       {/* Sector Overview */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-white/5 p-5 rounded-3xl border border-white/5 hover:border-white/10 transition-colors">
-                          <label className="text-[9px] text-white/20 font-black uppercase tracking-widest block mb-2">Validated Target</label>
-                          <p className="text-xl font-black leading-tight uppercase tracking-tighter truncate leading-none mb-1">{primaryAnalysis.data.location.name.split(',')[0]}</p>
-                          <p className="text-[10px] text-white/30 font-medium">{primaryAnalysis.data.location.name.split(',').slice(1, 3).join(',')}</p>
+                      <div className="space-y-3">
+                        {/* Primary Stats */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-white/5 p-5 rounded-[2rem] border border-white/5 text-center flex flex-col justify-center">
+                            <label className="text-[9px] text-white/20 font-black uppercase tracking-widest block mb-1">Local Population</label>
+                            <p className="text-xl font-black italic tracking-tighter text-[var(--accent)]">
+                              {primaryAnalysis.data.population.toLocaleString()}
+                            </p>
+                          </div>
+                          <div className="bg-white/5 p-5 rounded-[2rem] border border-white/5 text-center flex flex-col justify-center">
+                            <label className="text-[9px] text-white/20 font-black uppercase tracking-widest block mb-1">Gap Index</label>
+                            <span className={`text-xl font-black italic tracking-tighter ${(primaryAnalysis.data.severity * 100) > 60 ? 'text-[var(--danger)] animate-pulse' : 'text-[var(--warning)]'}`}>
+                              {(primaryAnalysis.data.severity * 100).toFixed(1)}%
+                            </span>
+                          </div>
                         </div>
-                        <div className="bg-white/5 p-5 rounded-3xl border border-white/5 text-right">
-                          <label className="text-[9px] text-white/20 font-black uppercase tracking-widest block mb-2">Gap Index</label>
-                          <span className={`text-2xl font-black italic tracking-tighter ${(primaryAnalysis.data.severity * 100) > 60 ? 'text-[var(--danger)] animate-pulse' : 'text-[var(--warning)]'}`}>
-                            {(primaryAnalysis.data.severity * 100).toFixed(1)}%
-                          </span>
+
+                        {/* Location Details - Full Width to prevent truncation */}
+                        <div className="bg-white/5 p-6 rounded-[2.5rem] border border-white/5 hover:border-white/10 transition-colors group relative overflow-hidden">
+                          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <MapPin size={24} />
+                          </div>
+                          <label className="text-[9px] text-white/20 font-black uppercase tracking-widest block mb-2">Target Sector</label>
+                          <p className="text-xl font-black leading-tight uppercase tracking-tighter text-white mb-1">
+                            {primaryAnalysis.data.location.name.includes('Sector') && primaryAnalysis.data.location.city 
+                              ? primaryAnalysis.data.location.city 
+                              : primaryAnalysis.data.location.name.split(',')[0]}
+                          </p>
+                          <p className="text-[10px] text-white/30 font-bold uppercase tracking-wider">
+                            {primaryAnalysis.data.location.name.includes('Sector') 
+                              ? `Regional Sector ${primaryAnalysis.data.location.lat.toFixed(2)}, ${primaryAnalysis.data.location.lng.toFixed(2)}`
+                              : primaryAnalysis.data.location.name.split(',').slice(1, 3).join(', ') || 'Regional Intelligence Scan'}
+                          </p>
                         </div>
                       </div>
 
@@ -509,56 +580,85 @@ const Dashboard: React.FC = () => {
                         </div>
                       </div>
 
+                      {/* Category Selection for Map Panel */}
+                      <div className="pt-6 border-t border-white/5 space-y-4">
+                        <label className="text-[9px] text-white/20 font-black uppercase tracking-[0.4em]">Reform Focus</label>
+                        <div className="grid grid-cols-4 gap-2">
+                          {categories.map((c) => (
+                            <button
+                              key={c.id}
+                              onClick={() => { setCategory(c.id); setPetitionText(null); }}
+                              className={`py-3 rounded-2xl border transition-all text-center flex flex-col items-center justify-center gap-1 ${category === c.id
+                                ? 'bg-[var(--accent)]/10 border-[var(--accent)]/40 text-[var(--accent)]'
+                                : 'bg-white/5 border-white/5 text-white/20 hover:border-white/10'
+                                }`}
+                            >
+                              <span className="text-sm">{c.icon}</span>
+                              <span className="text-[7px] font-black uppercase tracking-widest">{c.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
                       {/* Petition Button */}
-                      <div className="pt-10 border-t border-white/5">
+                      <div className="pt-8 border-t border-white/5">
                         {!petitionText ? (
                           <button
                             onClick={handleGeneratePetition}
                             disabled={isGenerating}
-                            className="w-full py-6 bg-white text-black font-black uppercase text-xs tracking-[0.3em] rounded-3xl hover:bg-[var(--accent)] transition-all flex items-center justify-center gap-4 group disabled:opacity-50"
+                            className={`w-full py-6 bg-white text-black font-black uppercase text-xs tracking-[0.3em] rounded-3xl transition-all flex items-center justify-center gap-4 group disabled:opacity-50 ${isGenerating ? 'cursor-wait' : 'hover:bg-[var(--accent)] shadow-[0_10px_30px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(0,245,255,0.2)]'}`}
                           >
-                            {isGenerating ? "Neural Data Sync..." : "Generate AI Reform Case"}
+                            {isGenerating ? (
+                              <>
+                                <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                                Neural Syncing...
+                              </>
+                            ) : (
+                              <>
+                                <Wand2 size={16} className="group-hover:rotate-12 transition-transform" />
+                                Generate AI Reform Case
+                              </>
+                            )}
                           </button>
                         ) : (
-                          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="p-8 bg-white/5 rounded-[2rem] border border-[var(--accent)]/30 relative overflow-hidden">
-                            <h4 className="text-[var(--accent)] font-black text-[10px] uppercase tracking-[0.4em] mb-4">Draft Case Briefing</h4>
-                            <p className="text-sm text-white/70 leading-relaxed italic line-clamp-6 mb-8">"{petitionText}"</p>
+                          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="p-8 bg-white/5 rounded-[2.5rem] border border-[var(--accent)]/30 relative overflow-hidden">
+                            <div className="flex justify-between items-center mb-4">
+                              <h4 className="text-[var(--accent)] font-black text-[10px] uppercase tracking-[0.4em]">Draft Briefing</h4>
+                              <span className="px-3 py-1 bg-[var(--accent)]/10 rounded-full text-[var(--accent)] text-[8px] font-black uppercase tracking-widest">{category}</span>
+                            </div>
+                            <p className="text-sm text-white/70 leading-relaxed italic line-clamp-6 mb-8 font-medium">"{petitionText}"</p>
                             <div className="flex gap-3">
                               <button
                                 onClick={async () => {
                                   const token = localStorage.getItem('token');
+                                  if (!token) return toast.error('Authentication required.');
+                                  const loadingToast = toast.loading('Dispatching to governance portal...');
                                   try {
                                     await axios.post(import.meta.env.VITE_API_URL + '/api/petitions', {
-                                      title: `Reform: ${primaryAnalysis.data.location.name}`,
+                                      title: `${category.toUpperCase()} Reform: ${primaryAnalysis.data.location.name}`,
                                       content: petitionText,
                                       locationName: primaryAnalysis.data.location.name,
-                                      latitude: primaryAnalysis.data.location.lat,
-                                      longitude: primaryAnalysis.data.location.lng,
+                                      latitude: primaryAnalysis.data.location.lat ?? useMapStore.getState().pingLocation?.lat ?? useMapStore.getState().focalLocation?.lat ?? 0,
+                                      longitude: primaryAnalysis.data.location.lng ?? useMapStore.getState().pingLocation?.lng ?? useMapStore.getState().focalLocation?.lng ?? 0,
                                       severityScore: primaryAnalysis.data.severity,
-                                      population: primaryAnalysis.data.population
+                                      population: primaryAnalysis.data.population,
+                                      targetAuthority: category === 'school' ? 'Education Board' : category === 'bank' ? 'RBI / Banking Div' : 'Municipal Corp'
                                     }, { headers: { Authorization: `Bearer ${token}` } });
-                                    toast.success('Dispatch successful.');
-                                    // Keep text for download but maybe just reset state later?
-                                    // For now just allow dispatch.
-                                    // setPetitionText(null); // Commented out as per instruction's implied intent
-                                  } catch (e) {
-                                    toast.error('Neural link lost.');
+                                    toast.success('Case uploaded successfully! check Petitions view.', { id: loadingToast });
+                                    setPetitionText(null);
+                                  } catch (e: any) {
+                                    console.error('Dispatch failed:', e.response?.data || e.message);
+                                    toast.error(e.response?.data?.error || 'Neural link failed (Database offline).', { id: loadingToast });
                                   }
                                 }}
                                 className="flex-1 py-4 bg-[var(--accent)] text-black font-black uppercase text-[10px] tracking-[0.3em] rounded-2xl shadow-[0_10px_30px_rgba(0,245,255,0.2)] hover:scale-[1.02] transition-transform"
                               >
-                                Dispatch to Portal
+                                Dispatch Case
                               </button>
                               <button
-                                onClick={() => {
-                                  const blob = new Blob([`INFRALENSE REFORM CASE\n\nLOCATION: ${primaryAnalysis.data.location.name}\nDATE: ${new Date().toLocaleDateString()}\n\nCASE BRIEFING:\n${petitionText}`], { type: 'text/plain' });
-                                  const url = URL.createObjectURL(blob);
-                                  const a = document.createElement('a');
-                                  a.href = url;
-                                  a.download = `InfraLense_Draft_${Date.now()}.txt`;
-                                  a.click();
-                                }}
-                                className="p-4 bg-white/10 text-white rounded-2xl hover:bg-white/20 transition-all"
+                                onClick={handleDownload}
+                                className="p-4 bg-white/10 text-white rounded-2xl hover:bg-white/20 hover:text-[var(--accent)] transition-all"
+                                title="Download formatted petition"
                               >
                                 <Download size={18} />
                               </button>

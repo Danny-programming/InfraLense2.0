@@ -40,7 +40,10 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
     }
     const petitions = await prisma.petition.findMany({
       orderBy: { createdAt: 'desc' },
-      include: { creator: { select: { name: true, email: true } } }
+      include: { 
+        creator: { select: { name: true, email: true } },
+        updates: true
+      }
     });
     res.json(petitions);
   } catch (error) {
@@ -118,11 +121,32 @@ router.patch('/:id/status', authenticate, async (req: AuthRequest, res) => {
   try {
     if (req.user?.role !== 'ADMIN') return res.status(403).json({ error: 'Forbidden' });
 
-    const { status } = req.body;
+    const { status, rejectionReason } = req.body;
     const petition = await prisma.petition.update({
       where: { id: req.params.id },
-      data: { status }
+      data: { status, rejectionReason }
     });
+
+    // If APPROVED, initialize the lifecycle at Stage 2
+    if (status === 'APPROVED') {
+      await prisma.projectUpdate.createMany({
+        data: [
+          {
+            stage: 1,
+            title: 'Verified',
+            description: 'Report validated by InfraLense intelligence core.',
+            petitionId: petition.id
+          },
+          {
+            stage: 2,
+            title: 'Admin Approval',
+            description: 'Administrative Approval (AA) granted for project initiation.',
+            petitionId: petition.id
+          }
+        ]
+      });
+    }
+
     res.json(petition);
   } catch (error) {
     res.status(500).json({ error: 'Failed to update petition status' });

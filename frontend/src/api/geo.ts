@@ -16,6 +16,10 @@ export const queryOverpass = async (bounds: { south: number, west: number, north
 
   const res = await fetch('https://overpass-api.de/api/interpreter', {
     method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'User-Agent': 'InfraLense/2.0 (Public Infrastructure Analysis Tool)'
+    },
     body: `data=${encodeURIComponent(query)}`
   });
 
@@ -39,18 +43,41 @@ export const queryOverpass = async (bounds: { south: number, west: number, north
 };
 
 export const reverseGeocode = async (lat: number, lng: number) => {
-  const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`);
-  const data = await res.json();
-  return {
-    name: data.display_name,
-    city: data.address.city || data.address.town || data.address.village,
-    country: data.address.country,
-    countryCode: data.address.country_code
-  };
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`, {
+      headers: {
+        'User-Agent': 'InfraLense/2.0 (Public Infrastructure Analysis Tool)',
+        'Accept-Language': 'en'
+      }
+    });
+    if (!res.ok) throw new Error('Reverse Geocode Failed');
+    const data = await res.json();
+    
+    // Attempt to find the most relevant neighborhood or suburb name
+    const neighborhood = data.address.suburb || data.address.neighborhood || data.address.residential || data.address.city_district || data.address.town || data.address.city;
+    
+    return {
+      name: neighborhood ? `${neighborhood}, ${data.address.city || ''}`.replace(/, $/, '') : data.display_name,
+      city: data.address.city || data.address.town || data.address.village,
+      country: data.address.country,
+      countryCode: data.address.country_code,
+      fullAddress: data.display_name
+    };
+  } catch (e) {
+    console.error('Reverse Geocode error:', e);
+    return null;
+  }
 };
 
-export const geocode = async (query: string) => {
-  const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`);
+export const geocode = async (query: string, viewbox?: string) => {
+  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1${viewbox ? `&viewbox=${viewbox}` : ''}`;
+  const res = await fetch(url, {
+    headers: {
+      'User-Agent': 'InfraLense/2.0 (Public Infrastructure Analysis Tool)',
+      'Accept-Language': 'en'
+    }
+  });
+  if (!res.ok) throw new Error('Geocode Failed');
   const data = await res.json();
   return data.map((item: any) => ({
     display_name: item.display_name,

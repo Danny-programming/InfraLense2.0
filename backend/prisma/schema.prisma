@@ -22,6 +22,7 @@ model User {
   complaints    Complaint[]
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
+  notifications Notification[]
 }
 
 model Petition {
@@ -37,8 +38,10 @@ model Petition {
   creator         User     @relation(fields: [creatorId], references: [id])
   creatorId       String
   targetAuthority String?
+  rejectionReason String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  updates         ProjectUpdate[] @relation("PetitionUpdates")
 }
 
 model AnalyticsLog {
@@ -69,6 +72,39 @@ model Complaint {
   status      String   @default("PENDING")
   creator     User     @relation(fields: [creatorId], references: [id])
   creatorId   String
+  rejectionReason String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  updates     ProjectUpdate[] @relation("ComplaintUpdates")
+}
+
+model ProjectUpdate {
+  id          String   @id @default(cuid())
+  stage       Int      @default(1) // 1-7 (BMC Lifecycle stages)
+  title       String   // e.g., "Administrative Approval Received"
+  description String?  // e.g., "Budget allocated for lane expansion."
+  timestamp   DateTime @default(now())
+  
+  petitionId  String?
+  petition    Petition? @relation("PetitionUpdates", fields: [petitionId], references: [id])
+  
+  complaintId String?
+  complaint   Complaint? @relation("ComplaintUpdates", fields: [complaintId], references: [id])
+
+  @@index([petitionId])
+  @@index([complaintId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  type      String   @default("INFO") // INFO, SUCCESS, WARNING, PROJECT_UPDATE
+  read      Boolean  @default(false)
+  link      String?  // Optional link to project
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }

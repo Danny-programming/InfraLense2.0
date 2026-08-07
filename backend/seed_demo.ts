@@ -4,43 +4,38 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Seeding Neon database...');
+  const hashedPassword = await bcrypt.hash('password123', 10);
 
-  const adminPassword = await bcrypt.hash('password123', 10);
-  const userPassword = await bcrypt.hash('password123', 10);
-
-  // Create Admin
+  // Upsert Admin
   await prisma.user.upsert({
     where: { email: 'admin@infra.com' },
     update: {},
     create: {
       email: 'admin@infra.com',
-      password: adminPassword,
-      name: 'System Admin',
+      name: 'Admin System',
+      password: hashedPassword,
       role: 'ADMIN',
     },
   });
 
-  // Create Citizen
+  // Upsert Citizen
   await prisma.user.upsert({
     where: { email: 'user@infra.com' },
     update: {},
     create: {
       email: 'user@infra.com',
-      password: userPassword,
       name: 'Standard User',
+      password: hashedPassword,
       role: 'CITIZEN',
     },
   });
 
-  console.log('✅ Seed data successfully created:');
-  console.log('Admin: admin@infra.com / password123');
-  console.log('Citizen: user@infra.com / password123');
+  console.log('Seed successful: admin@infra.com and user@infra.com created with password123');
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Error seeding database:', e);
+    console.error(e);
     process.exit(1);
   })
   .finally(async () => {

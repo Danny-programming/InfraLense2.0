@@ -3,6 +3,7 @@ import { Search, MapPin, Loader2, Navigation } from 'lucide-react';
 import { geocode } from '../../api/geo';
 import { useMapStore } from '../../store/mapStore';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 
 const MapSearch: React.FC = () => {
   const [query, setQuery] = useState('');
@@ -57,34 +58,46 @@ const MapSearch: React.FC = () => {
     ignoreNextQueryChange.current = true;
     setQuery(s.display_name);
     setFocalLocation(s.lat, s.lon, s.boundingbox);
-    
-    // Immediate Map Navigation
-    const map = (window as any).leafletMap;
-    if (map) {
-      if (s.boundingbox) {
-        map.fitBounds(s.boundingbox, { animate: true, duration: 2 });
-      } else {
-        map.flyTo([s.lat, s.lon], 14, { animate: true, duration: 2 });
-      }
-    }
-
+    toast.success(`Navigating to ${s.display_name.split(',')[0]}`, { id: 'search-nav' });
     setShowDropdown(false);
     setSuggestions([]);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && suggestions.length > 0) {
-      handleSelect(suggestions[0]);
+  const handleKeyDown = async (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      if (suggestions.length > 0) {
+        handleSelect(suggestions[0]);
+      } else if (query.length > 2) {
+        const loadingToast = toast.loading('Searching location...', { id: 'search-nav' });
+        setLoading(true);
+        try {
+          const map = (window as any).leafletMap;
+          const results = await geocode(query, map ? `${map.getBounds().getWest()},${map.getBounds().getNorth()},${map.getBounds().getEast()},${map.getBounds().getSouth()}` : undefined);
+          if (results.length > 0) {
+            handleSelect(results[0]);
+          } else {
+            toast.error('No results found for this query.', { id: 'search-nav' });
+          }
+        } catch (error) {
+          toast.error('Search failed. Please try again.', { id: 'search-nav' });
+          console.error('Immediate geocoding error:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
     }
   };
 
+  const triggerLocate = useMapStore(s => s.triggerLocate);
+
   const handleLocateMe = () => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        setFocalLocation(position.coords.latitude, position.coords.longitude);
-        setQuery('My Current Location');
-      });
-    }
+    toast.loading('Synchronizing GPS neural link...', { id: 'locate-me' });
+    triggerLocate();
+    setQuery('My Current Location');
+    // Ensure the toast is dismissed after a timeout in case no location is found
+    setTimeout(() => {
+      toast.dismiss('locate-me');
+    }, 10000);
   };
 
   return (

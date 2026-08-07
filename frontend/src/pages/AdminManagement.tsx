@@ -28,7 +28,7 @@ import RejectionModal from '../components/admin/RejectionModal';
 
 const socket = io(import.meta.env.VITE_API_URL);
 
-const AdminDashboard: React.FC = () => {
+const AdminManagement: React.FC = () => {
   const navigate = useNavigate();
   const [recommendation, setRecommendation] = useState("Analyzing recent geospatial trends...");
   const [liveFeed, setLiveFeed] = useState<any[]>([]);
@@ -151,8 +151,7 @@ const AdminDashboard: React.FC = () => {
           </Link>
           <div>
             <h1 className="text-3xl font-black italic tracking-tighter uppercase text-[var(--accent)] flex items-center gap-4">
-              Command Center 
-              <span className="text-[10px] bg-[var(--accent)]/20 text-[var(--accent)] px-3 py-1 rounded-full not-italic tracking-widest border border-[var(--accent)]/30">VERSION 4.0 - ACTIVE</span>
+              Command Center
             </h1>
             <p className="text-white/40 text-[10px] uppercase tracking-[0.4em] font-bold">National Infrastructure Intelligence Oversight (STABLE)</p>
           </div>
@@ -584,7 +583,7 @@ const AdminDashboard: React.FC = () => {
                 </section>
               </div>
 
-              {/* Modal Footer (PATCH V5 - UNIFIED LIFECYCLE) */}
+              {/* Modal Footer (PATCH V4 - FORCE LIFECYCLE) */}
               <div className="p-10 border-t border-white/5 flex flex-col gap-6 bg-white/[0.02]">
                 {selectedPetition.status === 'PENDING' ? (
                   <div className="flex gap-4">
@@ -639,22 +638,22 @@ const AdminDashboard: React.FC = () => {
                                 { title: 'Audit & Completion', desc: 'Final audit completed.' },
                               ][s-1];
                               
-                              try {
-                                await axios.post(import.meta.env.VITE_API_URL + '/api/projects/advance', {
-                                  caseId: selectedPetition.id,
-                                  type: 'petition',
-                                  stage: s,
-                                  title: stageData.title,
-                                  description: stageData.desc
-                                }, { headers: { Authorization: `Bearer ${token}` } });
-                                toast.success(`Approved: ${stageNames[s-1]}`, {
-                                  icon: '✅',
-                                  style: { background: '#064e3b', color: '#fff', border: '1px solid rgba(16,185,129,0.2)' }
-                                });
-                                fetchPetitions();
-                              } catch (err) {
-                                toast.error('Failed to update stage.');
-                              }
+                                try {
+                                  await axios.post(import.meta.env.VITE_API_URL + '/api/projects/advance', {
+                                    caseId: selectedPetition.id,
+                                    type: 'petition',
+                                    stage: s,
+                                    title: stageData.title,
+                                    description: stageData.desc
+                                  }, { headers: { Authorization: `Bearer ${token}` } });
+                                  toast.success(`Approved: ${stageNames[s-1]}`, {
+                                    icon: '✅',
+                                    style: { background: '#064e3b', color: '#fff', border: '1px solid rgba(16,185,129,0.2)' }
+                                  });
+                                  fetchPetitions();
+                                } catch (err) {
+                                  toast.error('Failed to update stage.');
+                                }
                             }}
                             className={`py-4 px-3 rounded-[1.25rem] text-[9px] font-black uppercase tracking-tighter transition-all border text-left flex flex-col justify-center gap-1 ${
                               isApproved
@@ -808,7 +807,6 @@ const AdminDashboard: React.FC = () => {
                           'Stage 6: QC Inspection',
                           'Stage 7: Resolution'
                         ];
-                        const isApproved = selectedComplaint.updates?.some((u: any) => u.stage === s);
                         return (
                           <button
                             key={s}
@@ -833,27 +831,17 @@ const AdminDashboard: React.FC = () => {
                                   title: stageData.title,
                                   description: stageData.desc
                                 }, { headers: { Authorization: `Bearer ${token}` } });
-                                  toast.success(`Approved: ${stageNames[s-1]}`, {
-                                    icon: '✅',
-                                    style: { background: '#064e3b', color: '#fff', border: '1px solid rgba(16,185,129,0.2)' }
-                                  });
-                                fetchComplaints();
+                                toast.success(`Advanced to ${stageNames[s-1]}`);
                               } catch (err) {
                                 toast.error('Failed to update stage.');
                               }
                             }}
                             className={`py-4 px-3 rounded-[1.25rem] text-[9px] font-black uppercase tracking-tighter transition-all border text-left flex flex-col justify-center gap-1 ${
-                              isApproved
-                                ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.1)]'
-                                : s === 7 
-                                  ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400 hover:bg-indigo-500 hover:text-white'
-                                  : 'bg-white/5 border-white/5 text-white/40 hover:border-[var(--accent)]/50 hover:bg-[var(--accent)]/10 hover:text-white'
+                              s === 7 ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400 hover:bg-indigo-500 hover:text-white' : 
+                              'bg-white/5 border-white/5 text-white/40 hover:border-[var(--accent)]/50 hover:bg-[var(--accent)]/10 hover:text-white'
                             }`}
                           >
-                            <div className="flex justify-between items-center w-full">
-                              <span className="opacity-40 text-[7px] tracking-[0.2em]">PHASE 0{s}</span>
-                              {isApproved && <CheckCircle2 size={10} className="text-emerald-400" />}
-                            </div>
+                            <span className="opacity-40 text-[7px] tracking-[0.2em]">PHASE 0{s}</span>
                             {stageNames[s-1]}
                           </button>
                         );
@@ -888,4 +876,4 @@ const AdminDashboard: React.FC = () => {
   );
 };
 
-export default AdminDashboard;
+export default AdminManagement;

@@ -9,36 +9,87 @@ import {
   Database,
   Fingerprint,
   Map as MapIcon,
-  ChevronRight
+  ChevronRight,
+  Radio,
+  Navigation,
+  MapPin,
+  RotateCw,
+  Terminal
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Waves } from '../components/ui/wave-background';
 
+const SECTORS = [
+  { name: "MUMBAI SECTOR-9", coords: "19.0760° N, 72.8777° E", stability: 84.2, code: "676-U", color: "#00f5ff" },
+  { name: "BANGALORE SECTOR-4", coords: "12.9716° N, 77.5946° E", stability: 91.8, code: "402-X", color: "#10b981" },
+  { name: "DELHI SECTOR-12", coords: "28.7041° N, 77.1025° E", stability: 73.5, code: "911-W", color: "#f59e0b" },
+  { name: "HYDERABAD SECTOR-7", coords: "17.3850° N, 78.4867° E", stability: 88.0, code: "108-Z", color: "#8b5cf6" }
+];
+
 const Landing: React.FC = () => {
   const navigate = useNavigate();
+  const [activeSectorIndex, setActiveSectorIndex] = useState(0);
+  const [displayedStability, setDisplayedStability] = useState(0);
   const [logs, setLogs] = useState<string[]>([
-    '[PETITION GENERATED: REGIONAL REFORM]',
-    '[DATA LATENCY: <12MS]',
     '[NEURAL PARITY: OPTIMIZED]',
-    '[SCANNING SECTOR: 564-A]',
+    '[NEURAL PARITY: OPTIMIZED]',
+    '[GAP DETECTED: 16%]',
+    '[SCANNING SECTOR: 676-U]',
+    '[NEURAL PARITY: OPTIMIZED]',
   ]);
   const [clearanceId, setClearanceId] = useState('');
   const [isAuthorizing, setIsAuthorizing] = useState(false);
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    setDisplayedStability(0);
+    const target = SECTORS[activeSectorIndex].stability;
+    const duration = 1200; 
+    const stepTime = 16; 
+    const steps = duration / stepTime;
+    const increment = target / steps;
+    let current = 0;
+    
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= target) {
+        setDisplayedStability(target);
+        clearInterval(timer);
+      } else {
+        setDisplayedStability(Number(current.toFixed(1)));
+      }
+    }, stepTime);
+
+    const sector = SECTORS[activeSectorIndex];
+    setLogs([
+      '[NEURAL PARITY: OPTIMIZED]',
+      `[SAT LINK STABILITY: ${(100 - (100 - sector.stability) * 0.4).toFixed(1)}%]`,
+      `[GAP DETECTED: ${Math.round(100 - sector.stability)}%]`,
+      `[SCANNING SECTOR: ${sector.code}]`,
+      '[NEURAL PARITY: OPTIMIZED]',
+    ]);
+
+    return () => clearInterval(timer);
+  }, [activeSectorIndex]);
+
+  useEffect(() => {
+    const logInterval = setInterval(() => {
       const messages = [
-        `[SCANNING SECTOR: ${Math.floor(Math.random() * 900)}-${String.fromCharCode(65 + Math.floor(Math.random() * 26))}]`,
-        `[GAP DETECTED: ${Math.floor(Math.random() * 100)}%]`,
+        `[SCANNING SUB-GRID: ${Math.floor(Math.random() * 800 + 100)}]`,
+        `[PACKETS DEQUEUED: <${(Math.random() * 5 + 1).toFixed(1)}MS]`,
         '[NEURAL PARITY: OPTIMIZED]',
-        '[PETITION GENERATED: REGIONAL REFORM]',
-        '[DATA LATENCY: <12MS]'
+        `[SAT LINK STABILITY: ${(100 - (100 - SECTORS[activeSectorIndex].stability) * 0.4 + (Math.random() * 2 - 1)).toFixed(1)}%]`,
+        `[GEOSPATIAL DRIFT: <0.00${Math.floor(Math.random() * 9 + 1)}°]`
       ];
-      setLogs(prev => [...prev.slice(-4), messages[Math.floor(Math.random() * messages.length)]]);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
+      const indexToReplace = Math.floor(Math.random() * 5);
+      setLogs(prev => {
+        const next = [...prev];
+        next[indexToReplace] = messages[Math.floor(Math.random() * messages.length)];
+        return next;
+      });
+    }, 4000);
+    return () => clearInterval(logInterval);
+  }, [activeSectorIndex]);
 
   const handleClearance = (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,88 +185,256 @@ const Landing: React.FC = () => {
             </button>
           </motion.div>
 
-          {/* Macro System Telemetry Card - Image 2 Integration */}
+          {/* Macro System Telemetry Card - Enhanced Image 2 Integration */}
           <motion.div
             initial={{ opacity: 0, y: 60 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8 }}
             className="w-full max-w-5xl group"
           >
-            <div className="bg-[#0a1120]/80 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)] flex flex-col md:flex-row min-h-[450px]">
+            {/* Sector Tabs Bar */}
+            <div className="flex justify-between items-center mb-6 px-6">
+              <div className="flex items-center gap-3">
+                <Terminal size={14} style={{ color: SECTORS[activeSectorIndex].color }} className="animate-pulse" />
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/50">OVERSIGHT LINK SELECTOR</span>
+              </div>
+              <div className="flex gap-2">
+                {SECTORS.map((sector, idx) => (
+                  <button
+                    key={sector.name}
+                    onClick={() => setActiveSectorIndex(idx)}
+                    style={{
+                      borderColor: activeSectorIndex === idx ? sector.color + '50' : 'rgba(255,255,255,0.05)',
+                      backgroundColor: activeSectorIndex === idx ? sector.color + '15' : 'rgba(255,255,255,0.05)',
+                      color: activeSectorIndex === idx ? sector.color : 'rgba(255,255,255,0.3)',
+                      boxShadow: activeSectorIndex === idx ? `0 0 20px ${sector.color}20` : 'none'
+                    }}
+                    className="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all border hover:text-white"
+                  >
+                    {sector.name.split(' ')[0]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-[#0a1120]/80 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.6)] flex flex-col md:flex-row min-h-[480px] relative">
+              {/* Corner tech accents */}
+              <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-white/10 rounded-tl-3xl pointer-events-none" />
+              <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-white/10 rounded-tr-3xl pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-white/10 rounded-bl-3xl pointer-events-none" />
+              <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-white/10 rounded-br-3xl pointer-events-none" />
+
               {/* Left Panel: Logs & Stats */}
-              <div className="w-full md:w-[45%] p-10 border-r border-white/5 flex flex-col justify-between">
+              <div className="w-full md:w-[45%] p-10 border-r border-white/5 flex flex-col justify-between bg-gradient-to-b from-white/[0.01] to-transparent">
                 <div className="space-y-8">
-                  <div className="flex items-center gap-4 text-white/40">
-                    <ChevronRight size={16} className="text-[var(--accent)]" />
-                    <h4 className="text-[9px] font-black uppercase tracking-[0.4em]">Macro System Telemetry</h4>
+                  <div className="flex items-center justify-between text-white/40">
+                    <div className="flex items-center gap-3">
+                      <ChevronRight size={16} style={{ color: SECTORS[activeSectorIndex].color }} className="animate-pulse" />
+                      <h4 className="text-[9px] font-black uppercase tracking-[0.4em]">Macro System Telemetry</h4>
+                    </div>
+                    <span 
+                      style={{
+                        color: SECTORS[activeSectorIndex].color,
+                        backgroundColor: SECTORS[activeSectorIndex].color + '15',
+                        borderColor: SECTORS[activeSectorIndex].color + '30'
+                      }}
+                      className="text-[8px] font-mono font-bold px-2.5 py-0.5 rounded border animate-pulse"
+                    >
+                      LIVE FEED
+                    </span>
                   </div>
 
-                  <div className="space-y-4 font-mono text-[10px]">
+                  <div className="space-y-3 font-mono text-[10px]">
                     <AnimatePresence mode="popLayout">
-                      {logs.map((log, i) => (
-                        <motion.div
-                          key={log + i}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1 - i * 0.15, x: 0 }}
-                          className="flex items-center gap-3"
-                        >
-                          <span className="text-white/10">{i + 1}</span>
-                          <span className="font-bold text-white/80 uppercase tracking-tight">{log}</span>
-                        </motion.div>
-                      ))}
+                      {logs.map((log, i) => {
+                        let textColor = "text-white/80";
+                        let dotColor = "bg-[var(--accent)]";
+                        let dotStyle = {};
+                        if (log.includes("OPTIMIZED")) {
+                          textColor = "text-emerald-400 drop-shadow-[0_0_6px_rgba(16,185,129,0.3)]";
+                          dotColor = "bg-emerald-500";
+                        } else if (log.includes("GAP")) {
+                          textColor = "text-amber-400 drop-shadow-[0_0_6px_rgba(245,158,11,0.3)]";
+                          dotColor = "bg-amber-500";
+                        } else if (log.includes("SCANNING") || log.includes("SAT LINK") || log.includes("DRIFT") || log.includes("PACKETS")) {
+                          textColor = "font-semibold";
+                          dotStyle = { backgroundColor: SECTORS[activeSectorIndex].color };
+                          textColor = "drop-shadow-[0_0_6px_" + SECTORS[activeSectorIndex].color + "40]";
+                        }
+                        
+                        return (
+                          <motion.div
+                            key={log + i}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1 - i * 0.1, x: 0 }}
+                            className="flex items-center gap-3 py-2 border-b border-white/[0.02] last:border-0"
+                          >
+                            <span className="text-white/20 font-bold w-4">{i + 1}</span>
+                            <span 
+                              style={dotStyle} 
+                              className={`w-1.5 h-1.5 rounded-full ${dotStyle ? '' : dotColor} animate-pulse`} 
+                            />
+                            <span 
+                              style={log.includes("OPTIMIZED") || log.includes("GAP") ? {} : { color: SECTORS[activeSectorIndex].color }} 
+                              className={`font-bold uppercase tracking-widest ${textColor}`}
+                            >
+                              {log}
+                            </span>
+                          </motion.div>
+                        );
+                      })}
                     </AnimatePresence>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-10 pt-10 mt-10 border-t border-white/5">
-                  <div className="space-y-2">
-                    <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em]">Global Stability</p>
-                    <p className="text-4xl font-black italic tracking-tighter text-white/60 group-hover:text-white transition-colors">84.2%</p>
+                <div className="grid grid-cols-2 gap-6 pt-8 mt-8 border-t border-white/5">
+                  <div className="space-y-2 bg-white/[0.02] border border-white/5 p-4 rounded-2xl hover:border-white/20 hover:bg-white/[0.04] transition-all">
+                    <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.3em]">Global Stability</p>
+                    <p className="text-4xl font-black italic tracking-tighter text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">
+                      {displayedStability}%
+                    </p>
                   </div>
-                  <div className="space-y-2">
-                    <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em]">Neural Parity</p>
-                    <p className="text-4xl font-black italic tracking-tighter text-[var(--accent)]">ACTIVE</p>
+                  <div className="space-y-2 bg-white/[0.02] border border-white/5 p-4 rounded-2xl hover:border-white/20 hover:bg-white/[0.04] transition-all">
+                    <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.3em]">Neural Parity</p>
+                    <p 
+                      style={{ 
+                        color: SECTORS[activeSectorIndex].color,
+                        textShadow: `0 0 20px ${SECTORS[activeSectorIndex].color}80` 
+                      }} 
+                      className="text-4xl font-black italic tracking-tighter animate-pulse"
+                    >
+                      ACTIVE
+                    </p>
                   </div>
                 </div>
               </div>
 
-              {/* Right Panel: Holographic Globe */}
+              {/* Right Panel: Holographic Globe & Radar */}
               <div className="flex-1 p-10 relative flex items-center justify-center bg-gradient-to-br from-white/[0.02] to-transparent overflow-hidden">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,245,255,0.03),transparent_70%)]" />
+                {/* Background scanning lines */}
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.01),transparent_70%)]" />
+                <div className="absolute inset-0 bg-grid-cyan opacity-10 pointer-events-none" />
 
-                <div className="relative z-10">
-                  <div className="absolute inset-0 border-2 border-[var(--accent)]/5 rounded-full animate-[spin_20s_linear_infinite]" />
-                  <div className="absolute -inset-4 border border-[var(--accent)]/10 rounded-full animate-[spin_30s_linear_infinite_reverse]" />
+                {/* Radar System rings & sweep */}
+                <div className="relative z-10 flex items-center justify-center w-80 h-80">
+                  {/* Sweep gradient radar cone */}
+                  <svg className="absolute inset-0 w-full h-full animate-[spin_10s_linear_infinite] pointer-events-none" viewBox="0 0 200 200">
+                    <defs>
+                      <linearGradient id={`radarSweep-${activeSectorIndex}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor={SECTORS[activeSectorIndex].color} stopOpacity="0.25" />
+                        <stop offset="50%" stopColor={SECTORS[activeSectorIndex].color} stopOpacity="0.05" />
+                        <stop offset="100%" stopColor={SECTORS[activeSectorIndex].color} stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                    <path d="M 100 100 L 100 0 A 100 100 0 0 1 200 100 Z" fill={`url(#radarSweep-${activeSectorIndex})`} />
+                  </svg>
 
-                  <div className="w-64 h-64 rounded-full border-2 border-[var(--accent)]/20 flex items-center justify-center relative overflow-hidden group/globe">
-                    <div className="absolute inset-0 bg-[var(--accent)]/5 blur-2xl group-hover/globe:bg-[var(--accent)]/10 transition-all" />
-                    <Globe2 size={120} className="text-[var(--accent)] opacity-40 animate-pulse" />
-
-                    {/* Abstract waves across the globe from image */}
-                    <div className="absolute inset-0 opacity-20 pointer-events-none">
-                      <svg className="w-full h-full" viewBox="0 0 100 100">
-                        <path d="M0,50 Q25,30 50,50 T100,50" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--accent)]" />
-                        <path d="M0,60 Q25,40 50,60 T100,60" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--accent)]" />
-                        <path d="M0,40 Q25,20 50,40 T100,40" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--accent)]" />
-                      </svg>
-                    </div>
-                  </div>
-
-                  {/* Targeted location scan effect */}
-                  <motion.div
-                    animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0.6, 0.3] }}
-                    transition={{ duration: 4, repeat: Infinity }}
-                    className="absolute inset-0 border border-[var(--accent)] rounded-full blur-[2px]"
+                  {/* Concentric rings rotating differently */}
+                  <div 
+                    style={{ borderColor: SECTORS[activeSectorIndex].color + '15' }} 
+                    className="absolute inset-0 border rounded-full animate-[spin_40s_linear_infinite_reverse]" 
                   />
+                  <div 
+                    style={{ borderColor: SECTORS[activeSectorIndex].color + '30' }} 
+                    className="absolute inset-4 border border-dashed rounded-full animate-[spin_25s_linear_infinite]" 
+                  />
+                  <div 
+                    style={{ borderColor: SECTORS[activeSectorIndex].color + '40' }} 
+                    className="absolute inset-10 border border-dotted rounded-full animate-[spin_15s_linear_infinite_reverse]" 
+                  />
+                  <div 
+                    style={{ borderColor: SECTORS[activeSectorIndex].color + '10' }} 
+                    className="absolute inset-16 border-2 rounded-full" 
+                  />
+
+                  {/* Globe Core */}
+                  <div 
+                    style={{ 
+                      borderColor: SECTORS[activeSectorIndex].color + '40',
+                      backgroundColor: SECTORS[activeSectorIndex].color + '05',
+                      boxShadow: `inset 0 0 30px ${SECTORS[activeSectorIndex].color}15`
+                    }} 
+                    className="w-48 h-48 rounded-full border flex items-center justify-center relative overflow-hidden group/globe"
+                  >
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.02),transparent_70%)]" />
+                    
+                    {/* Globe wireframe vector path */}
+                    <svg className="absolute w-full h-full" style={{ color: SECTORS[activeSectorIndex].color + '60' }} viewBox="0 0 100 100">
+                      {/* Flowing animated wave pathways */}
+                      <motion.path 
+                        d="M -20,50 Q 15,30 50,50 T 120,50" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        animate={{ strokeDashoffset: [0, -100] }}
+                        transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+                        style={{ strokeDasharray: "8 4" }}
+                      />
+                      <motion.path 
+                        d="M -20,62 Q 15,42 50,62 T 120,62" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        animate={{ strokeDashoffset: [0, -100] }}
+                        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                        style={{ strokeDasharray: "12 6" }}
+                      />
+                      <motion.path 
+                        d="M -20,38 Q 15,18 50,38 T 120,38" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        animate={{ strokeDashoffset: [0, -100] }}
+                        transition={{ duration: 7, repeat: Infinity, ease: "linear" }}
+                        style={{ strokeDasharray: "6 3" }}
+                      />
+
+                      {/* Main globe circle contours */}
+                      <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ color: SECTORS[activeSectorIndex].color }} />
+                      <path d="M 35 38 C 42 42, 42 58, 35 62" fill="none" stroke="currentColor" strokeWidth="2" />
+                      <path d="M 65 38 C 58 42, 58 58, 65 62" fill="none" stroke="currentColor" strokeWidth="2" />
+                      <path d="M 50 20 C 50 35, 50 65, 50 80" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                      <path d="M 20 50 C 35 50, 65 50, 80 50" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                    </svg>
+
+                    {/* Glowing coordinate blips */}
+                    <div className="absolute top-1/4 left-1/3 w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                    <div className="absolute top-1/4 left-1/3 w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_#34d399]" />
+                    
+                    <div className="absolute bottom-1/3 right-1/4 w-2 h-2 rounded-full bg-red-400 animate-ping" />
+                    <div className="absolute bottom-1/3 right-1/4 w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_#f87171]" />
+
+                    <div 
+                      style={{ backgroundColor: SECTORS[activeSectorIndex].color, boxShadow: `0 0 15px ${SECTORS[activeSectorIndex].color}` }}
+                      className="absolute top-1/2 right-1/3 w-3.5 h-3.5 rounded-full animate-ping" 
+                    />
+                    <div 
+                      style={{ backgroundColor: SECTORS[activeSectorIndex].color, boxShadow: `0 0 10px ${SECTORS[activeSectorIndex].color}` }}
+                      className="absolute top-1/2 right-1/3 w-3.5 h-3.5 rounded-full" 
+                    />
+                  </div>
                 </div>
 
                 {/* Region Metadata from image */}
-                <div className="absolute bottom-10 left-10 right-10 p-5 bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl flex justify-between items-center group/meta">
-                  <div className="flex items-center gap-4">
-                    <Cpu size={14} className="text-[var(--accent)] group-hover/meta:rotate-90 transition-transform duration-500" />
-                    <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/40 group-hover/meta:text-white transition-colors">Targeting Mumbai Sector-9</span>
+                <div 
+                  style={{ borderColor: SECTORS[activeSectorIndex].color + '20' }}
+                  className="absolute bottom-8 left-8 right-8 p-4 bg-white/[0.02] backdrop-blur-xl border rounded-2xl flex justify-between items-center group/meta hover:bg-white/[0.04] transition-all shadow-[0_0_30px_rgba(0,0,0,0.3)]"
+                >
+                  <div className="flex items-center gap-3">
+                    <Cpu size={14} style={{ color: SECTORS[activeSectorIndex].color }} className="animate-[spin_6s_linear_infinite]" />
+                    <div className="flex flex-col">
+                      <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/80">
+                        Targeting {SECTORS[activeSectorIndex].name}
+                      </span>
+                      <span className="text-[7px] font-mono font-bold text-white/40 tracking-wider">
+                        LOC: {SECTORS[activeSectorIndex].coords}
+                      </span>
+                    </div>
                   </div>
-                  <div className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse" />
+                  <div className="flex items-center gap-2">
+                    <span className="text-[7px] font-mono font-bold text-emerald-400 animate-pulse uppercase">Synced</span>
+                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_#10b981]" />
+                  </div>
                 </div>
               </div>
             </div>

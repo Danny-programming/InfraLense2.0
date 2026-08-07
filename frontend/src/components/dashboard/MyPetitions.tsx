@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Clock, CheckCircle, MapPin, Download, FileCheck, ShieldCheck, XCircle } from 'lucide-react';
+import { FileText, Clock, CheckCircle, MapPin, Download, FileCheck, ShieldCheck, XCircle, ShieldAlert } from 'lucide-react';
 import axios from 'axios';
 import GlassCard from '../ui/GlassCard';
 import { io } from 'socket.io-client';
@@ -8,7 +8,11 @@ import toast from 'react-hot-toast';
 
 const socket = io(import.meta.env.VITE_API_URL);
 
-const MyPetitions: React.FC = () => {
+interface MyPetitionsProps {
+  onTrack?: (id: string) => void;
+}
+
+const MyPetitions: React.FC<MyPetitionsProps> = ({ onTrack }) => {
   const [petitions, setPetitions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -169,6 +173,73 @@ const MyPetitions: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
+  const handleDownloadRejectionReport = (petition: any) => {
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #020812; color: white; padding: 40px; text-align: left; }
+    .report { border: 2px solid #ef4444; border-radius: 24px; padding: 40px; background: rgba(239, 68, 68, 0.05); }
+    .header { border-bottom: 1px solid rgba(239, 68, 68, 0.2); margin-bottom: 30px; padding-bottom: 20px; }
+    .title { font-size: 24px; font-weight: 900; color: #ef4444; text-transform: uppercase; letter-spacing: -1px; }
+    .case-id { font-family: monospace; opacity: 0.5; font-size: 12px; }
+    .section { margin-bottom: 30px; }
+    .section-title { font-size: 10px; font-weight: 900; color: #ef4444; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
+    .reason { background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 12px; font-style: italic; line-height: 1.6; }
+    .path-to-approval { border-left: 2px solid #ef4444; padding-left: 20px; margin-top: 40px; }
+    .footer { margin-top: 60px; font-size: 10px; opacity: 0.3; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="report">
+    <div class="header">
+      <div class="title">Official Rejection Briefing</div>
+      <div class="case-id">CASE_REF: ${petition.id.toUpperCase()}</div>
+    </div>
+    
+    <div class="section">
+      <div class="section-title">Project Context</div>
+      <p><strong>Title:</strong> ${petition.title}</p>
+      <p><strong>Location:</strong> ${petition.locationName}</p>
+      <p><strong>Impact Scope:</strong> ${petition.population} citizens</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Administrative Decision</div>
+      <div class="reason">
+        ${petition.rejectionReason || "The current proposal does not meet the necessary high-impact criteria for immediate infrastructure allocation. Resource priority has been shifted to higher-severity zones."}
+      </div>
+    </div>
+
+    <div class="section path-to-approval">
+      <div class="section-title">Path To Approval (Future Projection)</div>
+      <p>To qualify for immediate reconsideration, the following metrics should be monitored:</p>
+      <ul>
+        <li>Affected Population threshold: Re-evaluate when region exceeds project growth targets.</li>
+        <li>Severity Index: Monitor for infrastructure degradation beyond current levels.</li>
+        <li>Community Support: Consolidate multiple similar reports to increase priority ranking.</li>
+      </ul>
+    </div>
+
+    <div class="footer">
+      THIS IS A GOVERNMENT GENERATED DOCUMENT (INFRA Lense INTELLIGENCE OS) - VERIFIED ON ${new Date().toLocaleDateString()}
+    </div>
+  </div>
+</body>
+</html>
+    `;
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `InfraLense_Rejection_Briefing_${petition.id.slice(0, 8)}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -250,6 +321,71 @@ const MyPetitions: React.FC = () => {
                   "{petition.content}"
                 </div>
 
+                {petition.status === 'REJECTED' && petition.rejectionReason && (
+                  <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl">
+                    <div className="flex items-center gap-2 mb-2 text-red-400">
+                      <ShieldAlert size={14} />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Administrative Feedback</span>
+                    </div>
+                    <p className="text-xs text-white/60 italic leading-relaxed">
+                      "{petition.rejectionReason}"
+                    </p>
+                  </div>
+                )}
+
+                {/* ═══ 7-STAGE PROGRESS TRACKER ═══ */}
+                <div className="flex items-center gap-3 py-4 border-y border-white/5 my-4">
+                  <div className="flex-1 space-y-2">
+                    <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest">
+                      <span className="text-white/40">Deployment Progress</span>
+                      <span className={`${petition.status === 'RESOLVED' ? 'text-emerald-400' : 'text-[var(--accent)]'} animate-pulse`}>
+                        {petition.status === 'RESOLVED' ? 'Finalized' : 'Phase ' + (petition.status === 'APPROVED' ? '2/7' : petition.status === 'REVIEWING' ? '3/7' : '1/7')}
+                      </span>
+                    </div>
+                    <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden flex gap-0.5">
+                      {[1, 2, 3, 4, 5, 6, 7].map((s) => (
+                        <div 
+                          key={s} 
+                          className={`h-full flex-1 transition-all duration-700 ${
+                            (petition.status === 'RESOLVED') || 
+                            (petition.status === 'REVIEWING' && s <= 3) || 
+                            (petition.status === 'APPROVED' && s <= 2) || 
+                            (s === 1)
+                            ? (petition.status === 'RESOLVED' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'bg-[var(--accent)] shadow-[0_0_10px_rgba(0,245,255,0.4)]') 
+                            : 'bg-white/10'
+                          }`} 
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 py-4 border-y border-white/5 my-4">
+                  <div className="flex-1 space-y-2">
+                    <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest">
+                      <span className="text-white/40">Deployment Progress</span>
+                      <span className={`${petition.status === 'RESOLVED' ? 'text-emerald-400' : 'text-[var(--accent)]'} animate-pulse`}>
+                        {petition.status === 'RESOLVED' ? 'Finalized' : 'Phase ' + (petition.status === 'APPROVED' ? '2/7' : petition.status === 'REVIEWING' ? '3/7' : '1/7')}
+                      </span>
+                    </div>
+                    <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden flex gap-0.5">
+                      {[1, 2, 3, 4, 5, 6, 7].map((s) => (
+                        <div 
+                          key={s} 
+                          className={`h-full flex-1 transition-all duration-700 ${
+                            (petition.status === 'RESOLVED') || 
+                            (petition.status === 'REVIEWING' && s <= 3) || 
+                            (petition.status === 'APPROVED' && s <= 2) || 
+                            (s === 1)
+                            ? (petition.status === 'RESOLVED' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'bg-[var(--accent)] shadow-[0_0_10px_rgba(0,245,255,0.4)]') 
+                            : 'bg-white/10'
+                          }`} 
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]">
                   <div className="flex gap-4">
                     <div>
@@ -263,12 +399,19 @@ const MyPetitions: React.FC = () => {
                   </div>
                   <div className="flex gap-4">
                     <button
-                      onClick={() => handleExport(petition)}
-                      className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5 hover:bg-[var(--accent)] hover:text-black transition-all text-[9px] font-black uppercase tracking-widest"
+                      onClick={() => petition.status === 'REJECTED' ? handleDownloadRejectionReport(petition) : handleExport(petition)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all text-[9px] font-black uppercase tracking-widest ${
+                        petition.status === 'REJECTED' 
+                        ? 'bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white' 
+                        : 'bg-white/5 border-white/5 hover:bg-[var(--accent)] hover:text-black'
+                      }`}
                     >
-                      <Download size={12} /> Download Case
+                      <Download size={12} /> {petition.status === 'REJECTED' ? 'Download Briefing' : 'Download Case'}
                     </button>
-                    <button className="text-[var(--accent)] text-[9px] font-black uppercase tracking-widest hover:underline decoration-2 underline-offset-4 flex items-center gap-2">
+                    <button 
+                      onClick={() => onTrack && onTrack(petition.id)}
+                      className="text-[var(--accent)] text-[9px] font-black uppercase tracking-widest hover:underline decoration-2 underline-offset-4 flex items-center gap-2"
+                    >
                       <FileCheck size={12} /> View Details
                     </button>
                   </div>

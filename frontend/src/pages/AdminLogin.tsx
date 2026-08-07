@@ -71,7 +71,7 @@ const AdminLogin: React.FC = () => {
               <input
                 type="text"
                 required
-                placeholder="Admin Primary Key"
+                placeholder="admin@infra.com"
                 className="w-full bg-[rgba(0,0,0,0.3)] border border-[var(--border)] rounded-[var(--radius-md)] py-3 px-4 text-white focus:border-[var(--danger)] focus:outline-none transition-colors mono"
               />
             </div>

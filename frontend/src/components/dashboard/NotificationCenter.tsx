@@ -12,7 +12,16 @@ const NotificationCenter: React.FC = () => {
   const [announcements, setAnnouncements] = useState<any[]>([]);
 
   useEffect(() => {
-    // Fetch announcements
+    const fetchNotifications = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get(import.meta.env.VITE_API_URL + '/api/notifications', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setNotifications(res.data);
+      } catch { }
+    };
+    
     const fetchAnnouncements = async () => {
       try {
         const token = localStorage.getItem('token');
@@ -22,43 +31,25 @@ const NotificationCenter: React.FC = () => {
         setAnnouncements(res.data);
       } catch { }
     };
+
+    fetchNotifications();
     fetchAnnouncements();
 
-    // Fetch user petitions for status history
-    const fetchPetitions = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get(import.meta.env.VITE_API_URL + '/api/petitions/my', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const statusNotifs = res.data
-          .filter((p: any) => p.status !== 'PENDING')
-          .map((p: any) => ({
-            id: p.id,
-            type: 'status',
-            title: `Petition ${p.status}`,
-            message: `Your petition for "${p.locationName}" has been ${p.status.toLowerCase()}.`,
-            status: p.status,
-            time: p.updatedAt
-          }));
-        setNotifications(statusNotifs);
-      } catch { }
-    };
-    fetchPetitions();
-
     // Listen for real-time updates
-    socket.on('governance_update', (data) => {
+    socket.on('project_notification', (data) => {
       setNotifications(prev => [{
-        id: data.id,
-        type: 'status',
-        title: `Petition ${data.status}`,
-        message: `Your petition has been ${data.status.toLowerCase()} by the administration.`,
-        status: data.status,
-        time: new Date().toISOString()
+        id: Math.random().toString(),
+        type: 'PROJECT_UPDATE',
+        title: data.title,
+        message: data.message,
+        createdAt: new Date().toISOString(),
+        read: false
       }, ...prev]);
+      
+      toast(data.message, { icon: '🔔' });
     });
 
-    return () => { socket.off('governance_update'); };
+    return () => { socket.off('project_notification'); };
   }, []);
 
   const allItems = [

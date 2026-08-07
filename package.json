@@ -6,7 +6,7 @@
     "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\" \"npm run start:ai\"",
     "start:frontend": "cd frontend && npm run dev",
     "start:backend": "cd backend && npm run dev",
-    "start:ai": "cd ai-service && uvicorn api:app --reload --port 8000"
+    "start:ai": "cd ai-service && .\\venv\\Scripts\\uvicorn api:app --reload --port 8000"
   },
   "devDependencies": {
     "concurrently": "^8.2.0"

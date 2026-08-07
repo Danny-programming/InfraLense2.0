@@ -110,7 +110,7 @@ const Login: React.FC = () => {
                   name="email"
                   type="email"
                   required
-                  placeholder="name@infralense.com"
+                  placeholder="user@infra.com"
                   className="w-full bg-white/5 border border-white/10 rounded-2xl py-4.5 pl-14 pr-6 text-sm text-white focus:border-[var(--accent)]/40 focus:bg-white/10 focus:outline-none transition-all placeholder:text-white/10 font-bold tracking-tight relative z-10"
                 />
               </div>

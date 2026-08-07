@@ -4,15 +4,28 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export const generatePetitionText = async (data: any) => {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-pro' });
+    const category = data.category || 'all';
+
+    let focusPrompt = '';
+    if (category === 'school') {
+      focusPrompt = 'Focus primarily on educational infrastructure, school buildings, and learning environments.';
+    } else if (category === 'bank') {
+      focusPrompt = 'Focus primarily on banking accessibility, ATM density, and proximity to financial institutions.';
+    } else if (category === 'finance') {
+      focusPrompt = 'Focus primarily on financial empowerment zones, local micro-finance support, and economic hubs.';
+    } else {
+      focusPrompt = 'Focus on a balanced improvement of education, healthcare, and financial infrastructure gaps.';
+    }
 
     const prompt = `Write a formal government petition for infrastructure investment.
+      Category focus: ${category.toUpperCase()} - ${focusPrompt}
       Area: ${data.locationName}
       Population: ${data.population}
       Schools: ${data.schools?.existing || 0} existing, ${data.schools?.required || 0} required (gap: ${data.schools?.gap || 0})
       Hospitals: ${data.hospitals?.existing || 0} existing, ${data.hospitals?.required || 0} required (gap: ${data.hospitals?.gap || 0})
       Banks: ${data.banks?.existing || 0} existing, ${data.banks?.required || 0} required (gap: ${data.banks?.gap || 0})
-      Tone: formal, urgent, evidence-based. Include: executive summary, current situation, gap analysis, recommendations, call to action. 3-4 paragraphs.`;
+      Tone: formal, urgent, evidence-based. Include: executive summary, current situation, domain-specific gap analysis (emphasizing ${category}), recommendations, call to action. 3-4 paragraphs.`;
 
     const result = await model.generateContent(prompt);
     return result.response.text();
@@ -44,7 +57,7 @@ InfraLense Analytics Feed`;
 };
 
 export const getAIRecommendations = async (data: any) => {
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-pro' });
 
   const prompt = `Analyze these infrastructure gaps and provide 3 specific, actionable recommendations for the local government.
     Gaps: ${JSON.stringify(data.gaps)}
@@ -60,7 +73,7 @@ export const getAIRecommendations = async (data: any) => {
 
 export async function generateRecommendation(stats: any) {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     const prompt = `As an Infrastructure Intelligence AI, provide a single-sentence proactive recommendation based on these system stats: 
     Severity Index: ${stats.globalSeverity}, Hotspots: ${stats.trendingHotspots.join(', ')}. 
     Focus on urgent urban planning actions.`;

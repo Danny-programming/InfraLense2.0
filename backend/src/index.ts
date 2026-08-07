@@ -11,6 +11,10 @@ import recommendationRoutes from './routes/recommendations';
 import petitionRoutes from './routes/petitions';
 import announcementRoutes from './routes/announcements';
 import complaintRoutes from './routes/complaints';
+import projectRoutes from './routes/projects';
+import adminRoutes from './routes/admin';
+import notificationRoutes from './routes/notifications';
+import { authenticate } from './middleware/auth';
 import path from 'path';
 
 dotenv.config();
@@ -20,6 +24,7 @@ const httpServer = createServer(app);
 export const io = new Server(httpServer, {
   cors: { origin: '*' }
 });
+app.set('io', io);
 
 app.use(cors());
 app.use(helmet());
@@ -31,7 +36,10 @@ app.use('/api/analysis', analysisRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/petitions', petitionRoutes);
 app.use('/api/announcements', announcementRoutes);
+app.use('/api/projects', projectRoutes);
 app.use('/api/complaints', complaintRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/notifications', notificationRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
 
 app.get('/health', (req, res) => {
