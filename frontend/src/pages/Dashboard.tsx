@@ -20,6 +20,7 @@ import {
   Activity,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
   Menu
 } from 'lucide-react';
 import {
@@ -180,17 +181,6 @@ Generated via InfraLense Platform
               Infra<span className="text-[var(--accent)]">Lense</span>
             </h1>
           </Link>
-          
-          <div className="w-px h-6 bg-white/10 mx-2" />
-          
-          {/* Main Sidebar Collapse toggle */}
-          <button
-            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/50 hover:text-white transition-all flex items-center justify-center"
-            title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-          >
-            <Menu size={16} />
-          </button>
         </div>
 
         <div className="flex items-center gap-6">
@@ -328,7 +318,16 @@ Generated via InfraLense Platform
             </div>
           </div>
 
-          {/* Removed Live System Status card as requested */}
+          {/* Subtle Collapse/Expand toggle at bottom of sidebar */}
+          <div className="p-4 border-t border-white/5 bg-black/10 flex justify-center">
+            <button
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              className="p-2 text-white/20 hover:text-white/60 hover:bg-white/5 rounded-xl transition-all w-full flex items-center justify-center"
+              title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+            >
+              {isSidebarCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+            </button>
+          </div>
         </aside>
 
         {/* View Content */}
