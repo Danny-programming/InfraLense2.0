@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, ArrowLeft, ArrowRight, Building2, MapPin, HardHat, CheckCircle2 } from 'lucide-react';
+import { Building2, MapPin, HardHat, ChevronRight, Activity, Users, Shield, Clock } from 'lucide-react';
 import axios from 'axios';
 import GlassCard from '../ui/GlassCard';
 import ProjectTimeline from './ProjectTimeline';
@@ -35,15 +35,19 @@ const TrackProjectView: React.FC<TrackProjectViewProps> = ({ initialSelectedId, 
       const token = localStorage.getItem('token');
       const [pRes, cRes] = await Promise.all([
         axios.get(import.meta.env.VITE_API_URL + '/api/petitions/my', { headers: { Authorization: `Bearer ${token}` } }),
-        // We assume citizens only track their own complaints or approved ones
         axios.get(import.meta.env.VITE_API_URL + '/api/complaints', { headers: { Authorization: `Bearer ${token}` } })
       ]);
       
       const approvedPetitions = pRes.data.filter((p: any) => p.status === 'APPROVED' || p.status === 'RESOLVED' || p.status === 'REVIEWING').map((p: any) => ({ ...p, type: 'petition' }));
-      // For complaints, show user's own approved ones
       const approvedComplaints = cRes.data.filter((c: any) => (c.status === 'APPROVED' || c.status === 'RESOLVED')).map((c: any) => ({ ...c, type: 'complaint' }));
       
-      setItems([...approvedPetitions, ...approvedComplaints]);
+      const combined = [...approvedPetitions, ...approvedComplaints];
+      setItems(combined);
+      
+      // Auto-select first item if exists and no initialSelectedId is provided
+      if (combined.length > 0 && !initialSelectedId) {
+        handleSelectItem(combined[0]);
+      }
     } catch (error) {
       console.error('Failed to fetch tracking items');
     } finally {
@@ -62,6 +66,7 @@ const TrackProjectView: React.FC<TrackProjectViewProps> = ({ initialSelectedId, 
       setUpdates([]);
     }
   };
+
   const handleSelectItem = (item: any) => {
     setSelectedItem(item);
     fetchTimeline(item.type, item.id);
@@ -97,161 +102,165 @@ const TrackProjectView: React.FC<TrackProjectViewProps> = ({ initialSelectedId, 
     return parts;
   };
 
-  if (selectedItem) {
-    const populationNum = selectedItem.population || 0;
-    const severityPct = (selectedItem.severityScore || selectedItem.severity || 0) * 100;
-
-    return (
-      <div className="flex-1 p-8 overflow-y-auto custom-scrollbar">
-        <button 
-          onClick={() => { setSelectedItem(null); onClearSelection && onClearSelection(); }}
-          className="flex items-center gap-2 text-[10px] font-black uppercase text-white/30 hover:text-[var(--accent)] transition-colors mb-8"
-        >
-          <ArrowLeft size={14} /> Back to Project List
-        </button>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          <div className="lg:col-span-1 space-y-6">
-            <GlassCard className="p-0 border-white/5 bg-[#050b16] overflow-hidden group">
-              <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
-                <h3 className="text-[10px] text-[var(--accent)] font-black uppercase tracking-[0.4em]">Project Brief</h3>
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_#10b981]" />
-              </div>
-              <div className="p-8 space-y-8">
-                <div className="p-5 bg-white/5 rounded-3xl border border-white/10 relative group-hover:border-[var(--accent)]/30 transition-all">
-                  <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                    <Building2 size={40} />
-                  </div>
-                  <h2 className="text-xl font-black uppercase italic tracking-tighter mb-2 leading-none">{selectedItem.title || selectedItem.category}</h2>
-                  <div className="flex items-center gap-2 text-white/40 text-[10px] uppercase font-bold tracking-widest">
-                    <MapPin size={12} className="text-[var(--accent)]" /> {selectedItem.locationName}
-                  </div>
-                </div>
-
-                <div className="relative">
-                  <div className="absolute -left-4 top-0 w-1 h-full bg-[var(--accent)]/20 rounded-full" />
-                  <p className="text-xs text-white/60 leading-relaxed font-medium">
-                    {highlightText(selectedItem.description || selectedItem.content)}
-                  </p>
-                </div>
-
-                <div className="pt-6 border-t border-white/5 grid grid-cols-2 gap-4">
-                  <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                    <span className="text-[8px] uppercase font-black text-white/20 block mb-1">Impact Radius</span>
-                    <p className="text-lg font-black italic text-white">{populationNum.toLocaleString()}</p>
-                  </div>
-                  <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                    <span className="text-[8px] uppercase font-black text-white/20 block mb-1">Gap Index</span>
-                    <p className="text-lg font-black italic text-red-500">{severityPct.toFixed(0)}%</p>
-                  </div>
-                </div>
-              </div>
-            </GlassCard>
-
-            <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-[var(--accent)]/10 to-transparent border border-[var(--accent)]/20 shadow-[0_20px_50px_rgba(0,0,0,0.3)] relative overflow-hidden">
-               <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--accent)]/5 rounded-full -mr-16 -mt-16 blur-3xl" />
-              <h4 className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-2">Live Pipeline Status</h4>
-              <div className="text-3xl font-black italic text-[var(--accent)] uppercase tracking-tighter mb-4">
-                {selectedItem.status}
-              </div>
-              <div className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/5">
-                <div className="w-10 h-10 rounded-xl bg-[var(--accent)]/20 flex items-center justify-center text-[var(--accent)]">
-                  <HardHat size={20} />
-                </div>
-                <div>
-                  <p className="text-[9px] font-black uppercase tracking-widest text-white/60">Registry Auth</p>
-                  <p className="text-[10px] font-bold text-white/30">BMC GOV-OS v2.4.1</p>
-                </div>
-              </div>
+  return (
+    <div className="flex-1 flex h-full w-full overflow-hidden bg-[#020812]">
+      {/* Left List Pane (40% width) */}
+      <div className="w-[360px] xl:w-[400px] border-r border-white/5 flex flex-col h-full bg-[#050b16]/30 shrink-0">
+        <div className="p-6 border-b border-white/5">
+          <span className="text-[9px] text-[var(--accent)] font-black uppercase tracking-[0.4em] block mb-1">Civilian Oversight</span>
+          <h2 className="text-2xl font-black uppercase italic tracking-tighter text-white">Project Monitor</h2>
+          <p className="text-white/40 text-[9px] uppercase font-bold tracking-widest mt-1.5">Implementation Lifecycles</p>
+        </div>
+        
+        {/* Scrollable list */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+          {loading ? (
+            <div className="h-32 flex items-center justify-center">
+              <div className="w-6 h-6 border-2 border-[var(--accent)]/20 border-t-[var(--accent)] rounded-full animate-spin" />
             </div>
-          </div>
+          ) : items.length === 0 ? (
+            <div className="p-8 text-center text-white/30 text-xs">No approved projects found.</div>
+          ) : (
+            items.map((item) => {
+              const isSelected = selectedItem?.id === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleSelectItem(item)}
+                  className={`w-full text-left p-4 rounded-2xl border transition-all duration-300 relative overflow-hidden flex flex-col gap-2.5 ${
+                    isSelected
+                      ? 'bg-[var(--accent)]/5 border-[var(--accent)]/30 shadow-[0_0_15px_rgba(0,245,255,0.02)]'
+                      : 'bg-white/[0.01] border-white/5 hover:bg-white/[0.03] hover:border-white/10'
+                  }`}
+                >
+                  {/* Left accent strip for selected */}
+                  {isSelected && (
+                    <div className="absolute left-0 top-0 w-1 h-full bg-[var(--accent)] shadow-[0_0_8px_var(--accent)]" />
+                  )}
 
-          <div className="lg:col-span-2">
-            <h3 className="text-sm font-black uppercase tracking-[0.3em] mb-8 flex items-center gap-3">
-               Governance Lifecycle <div className="flex-1 h-px bg-white/5" />
-            </h3>
-            <ProjectTimeline 
-              currentStage={updates.length > 0 ? Math.max(...updates.map(u => u.stage)) : 1} 
-              updates={updates} 
-            />
-          </div>
+                  <div className="flex justify-between items-center">
+                    <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${
+                      item.type === 'petition' ? 'bg-purple-500/10 text-purple-400 border-purple-500/10' : 'bg-amber-500/10 text-amber-400 border-amber-500/10'
+                    }`}>
+                      {item.type}
+                    </span>
+                    <span className="text-[9px] font-mono text-white/20">#{item.id.slice(-4).toUpperCase()}</span>
+                  </div>
+
+                  <div>
+                    <h3 className="font-black text-sm text-white group-hover:text-[var(--accent)] transition-colors truncate">{item.title || item.category}</h3>
+                    <div className="flex items-center gap-1 text-[10px] text-white/30 font-semibold mt-1">
+                      <MapPin size={10} className="text-[var(--accent)] shrink-0" />
+                      <span className="truncate">{item.locationName?.split(',')[0]}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2.5 border-t border-white/5">
+                    <span className={`text-[9px] font-black uppercase tracking-wider ${
+                      item.status === 'RESOLVED' ? 'text-emerald-400' : 'text-[var(--accent)]'
+                    }`}>
+                      {item.status === 'RESOLVED' ? 'Delivered' : 'In Progress'}
+                    </span>
+                    <div className="h-1.5 w-16 bg-white/5 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full ${item.status === 'RESOLVED' ? 'bg-emerald-400' : 'bg-[var(--accent)]'}`}
+                        style={{ width: item.status === 'RESOLVED' ? '100%' : '28%' }}
+                      />
+                    </div>
+                  </div>
+                </button>
+              );
+            })
+          )}
         </div>
       </div>
-    );
-  }
 
-  return (
-    <div className="flex-1 p-8 overflow-y-auto custom-scrollbar">
-      <header className="mb-10">
-        <h3 className="text-[10px] text-[var(--accent)] font-black uppercase tracking-[0.4em] mb-1">Civilian Oversight</h3>
-        <h2 className="text-3xl font-black uppercase italic tracking-tighter">Project <span className="text-[var(--accent)]">Monitor</span></h2>
-        <p className="text-white/40 text-[10px] uppercase font-bold tracking-[0.3em] mt-2">Tracking the implementation lifecycle of approved civic reforms</p>
-      </header>
-
-      {loading ? (
-        <div className="h-64 flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-[var(--accent)]/20 border-t-[var(--accent)] rounded-full animate-spin" />
-        </div>
-      ) : items.length === 0 ? (
-        <GlassCard className="p-12 text-center border-dashed border-white/10 opacity-60">
-          <Building2 size={48} className="mx-auto mb-4 text-white/20" />
-          <h4 className="text-sm font-black uppercase tracking-widest text-white/40">No Approved Projects</h4>
-          <p className="text-xs text-white/20 mt-2">Approved petitions and reports will appear here for lifecycle tracking.</p>
-        </GlassCard>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((item, i) => (
-            <motion.div 
-              key={item.id}
-              initial={{ opacity: 0, y: 20 }}
+      {/* Right Detail Pane (60% width) */}
+      <div className="flex-1 overflow-y-auto p-8 custom-scrollbar h-full bg-[#020812] relative">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(0,245,255,0.02),transparent_50%)] pointer-events-none" />
+        
+        <AnimatePresence mode="wait">
+          {selectedItem ? (
+            <motion.div
+              key={selectedItem.id}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-8"
             >
-              <GlassCard 
-                onClick={() => handleSelectItem(item)}
-                className={`p-6 transition-all cursor-pointer group relative overflow-hidden ${
-                  item.status === 'RESOLVED' 
-                    ? 'border-emerald-500/50 bg-emerald-500/5 shadow-[0_0_30px_rgba(16,185,129,0.1)]' 
-                    : 'border-white/5 bg-white/5 hover:border-[var(--accent)]/40'
-                }`}
-              >
-                {item.status === 'RESOLVED' && (
-                  <div className="absolute top-0 right-0 p-1 bg-emerald-500 text-black text-[7px] font-black uppercase tracking-widest px-3 rounded-bl-lg">
-                    Completed
-                  </div>
-                )}
-                <div className="flex justify-between items-start mb-4">
-                  <div className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${
-                    item.type === 'petition' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                  }`}>
-                    {item.type}
-                  </div>
-                  <span className="text-[10px] font-black text-[var(--accent)] tracking-tighter">#{item.id.slice(-4)}</span>
-                </div>
-                <h3 className="text-lg font-black uppercase italic tracking-tighter mb-2 group-hover:text-[var(--accent)] transition-colors">{item.title || item.category}</h3>
-                <div className="flex items-center gap-2 text-white/30 text-[10px] font-medium mb-6">
-                  <MapPin size={12} /> {item.locationName?.split(',')[0]}
-                </div>
-                
-                <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 size={14} className={item.status === 'RESOLVED' ? 'text-emerald-400' : 'text-green-500'} />
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${item.status === 'RESOLVED' ? 'text-emerald-400' : 'text-green-500/80'}`}>
-                      {item.status === 'RESOLVED' ? 'Mission Delivered' : 'Approved'}
+              {/* Header Details */}
+              <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 pb-6 border-b border-white/5">
+                <div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className={`px-2.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${
+                      selectedItem.type === 'petition' ? 'bg-purple-500/10 text-purple-400 border-purple-500/10' : 'bg-amber-500/10 text-amber-400 border-amber-500/10'
+                    }`}>
+                      {selectedItem.type}
                     </span>
+                    <span className="text-[10px] font-mono text-white/30">ID: CASE_{selectedItem.id.slice(-6).toUpperCase()}</span>
                   </div>
-                  {item.status === 'RESOLVED' && (
-                    <span className="text-[10px] font-black italic text-emerald-400/60 animate-pulse">
-                      Thanks for making the impact!
-                    </span>
-                  )}
-                  <ArrowRight size={16} className="text-white/20 group-hover:text-[var(--accent)] group-hover:translate-x-1 transition-all" />
+                  <h2 className="text-2xl font-black uppercase italic tracking-tighter text-white leading-tight">{selectedItem.title || selectedItem.category}</h2>
+                  <div className="flex items-center gap-2 text-white/40 text-xs font-semibold mt-1">
+                    <MapPin size={12} className="text-[var(--accent)] shrink-0" /> {selectedItem.locationName}
+                  </div>
                 </div>
-              </GlassCard>
+
+                <div className="p-4 bg-[var(--accent)]/5 border border-[var(--accent)]/20 rounded-2xl flex items-center gap-3 shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)]">
+                    <HardHat size={18} />
+                  </div>
+                  <div>
+                    <p className="text-[8px] font-black uppercase tracking-widest text-white/40 leading-none mb-1">State Status</p>
+                    <p className="text-xs font-black text-white uppercase tracking-wider">{selectedItem.status}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Grid split description and timeline */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Description column */}
+                <div className="lg:col-span-1 space-y-6">
+                  <GlassCard className="!p-6 border-white/5 bg-[#050b16]/20">
+                    <h4 className="text-[9px] font-black text-[var(--accent)] uppercase tracking-widest mb-3 block">📌 Project Objective</h4>
+                    <p className="text-xs text-white/65 leading-relaxed font-semibold">
+                      {highlightText(selectedItem.description || selectedItem.content)}
+                    </p>
+                  </GlassCard>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white/5 border border-white/5 p-4 rounded-xl">
+                      <span className="text-[8px] uppercase font-black text-white/20 block mb-1">Impact Scope</span>
+                      <p className="text-base font-black italic text-white">{(selectedItem.population || 0).toLocaleString()} <span className="text-[9px] text-white/40 font-bold uppercase tracking-wider block">citizens</span></p>
+                    </div>
+                    <div className="bg-white/5 border border-white/5 p-4 rounded-xl">
+                      <span className="text-[8px] uppercase font-black text-white/20 block mb-1">Severity Rating</span>
+                      <p className="text-base font-black italic text-red-500">{((selectedItem.severityScore || selectedItem.severity || 0) * 10).toFixed(0)}%</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Timeline column */}
+                <div className="lg:col-span-2">
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40 mb-6 flex items-center gap-3">
+                    Governance Lifecycle Timeline <div className="flex-1 h-[1px] bg-white/5" />
+                  </h3>
+                  <ProjectTimeline 
+                    currentStage={updates.length > 0 ? Math.max(...updates.map(u => u.stage)) : 1} 
+                    updates={updates} 
+                  />
+                </div>
+              </div>
             </motion.div>
-          ))}
-        </div>
-      )}
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center text-center p-8 opacity-45">
+              <Building2 size={64} className="text-white/10 mb-4 animate-pulse" />
+              <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white/30">Select a Project</h3>
+              <p className="text-xs text-white/20 mt-2 max-w-[280px]">Choose a case from the list on the left to track its administrative approvals and implementation milestones.</p>
+            </div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };
