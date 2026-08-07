@@ -17,7 +17,9 @@ import {
   Download,
   ArrowLeft,
   AlertTriangle,
-  Activity
+  Activity,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import {
   PieChart,
@@ -127,16 +129,36 @@ Generated via InfraLense Platform
     }
   };
 
-  const navItems: { icon: React.ReactNode, label: string, view?: string, onClick?: () => void }[] = [
-    { icon: <Activity size={20} className="text-[var(--accent)]" />, label: 'LIFECYCLE TRACKER', view: 'Monitor' },
+  const [isPetitionsOpen, setIsPetitionsOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    if (['Petitions', 'Monitor', 'Wizard'].includes(activeView)) {
+      setIsPetitionsOpen(true);
+    }
+  }, [activeView]);
+
+  const navItems: { 
+    icon: React.ReactNode; 
+    label: string; 
+    view?: string; 
+    onClick?: () => void;
+    children?: { label: string; view: string; icon: React.ReactNode }[];
+  }[] = [
     { icon: <MapIcon size={20} />, label: 'Explorer', view: 'Map' },
-    { icon: <FileText size={20} />, label: 'Petitions', view: 'Petitions' },
+    { 
+      icon: <FileText size={20} />, 
+      label: 'Petitions', 
+      children: [
+        { label: 'My Petitions', view: 'Petitions', icon: <FileText size={16} /> },
+        { label: 'Lifecycle Tracker', view: 'Monitor', icon: <Activity size={16} /> },
+        { label: 'New Petition', view: 'Wizard', icon: <Wand2 size={16} /> },
+      ]
+    },
     { icon: <BarChart3 size={20} />, label: 'Analytics', view: 'Analytics' },
     { icon: <Globe size={20} />, label: 'Community', view: 'Community' },
     { icon: <AlertTriangle size={20} />, label: 'Report Issue', view: 'ReportIssue' },
     { icon: <Trophy size={20} />, label: 'My Impact', view: 'Impact' },
     { icon: <Bell size={20} />, label: 'Notifications', view: 'Notifications' },
-    { icon: <Wand2 size={20} />, label: 'New Petition', view: 'Wizard' },
   ];
 
   const secondaryNavItems: { icon: React.ReactNode, label: string, view?: string, onClick?: () => void }[] = [
@@ -179,24 +201,70 @@ Generated via InfraLense Platform
             <div>
               <h3 className="text-[9px] uppercase font-black text-white/20 tracking-[0.4em] px-2 mb-5">Core Modules</h3>
               <div className="space-y-1.5">
-                {navItems.map((item) => (
-                  <button
-                    key={item.label}
-                    onClick={() => {
-                      if (item.onClick) item.onClick();
-                      if (item.view) setActiveView(item.view);
-                    }}
-                    className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 relative group/btn ${activeView === item.view
-                      ? 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20 shadow-[0_0_20px_rgba(0,245,255,0.05)]'
-                      : 'text-white/40 hover:text-white hover:bg-white/5 border border-transparent'
-                      }`}
-                  >
-                    <div className={`${activeView === item.view ? 'text-[var(--accent)]' : 'text-white/20 group-hover/btn:text-white/60'} transition-colors`}>
-                      {item.icon}
+                {navItems.map((item) => {
+                  const hasChildren = !!item.children;
+                  const isChildActive = hasChildren && item.children?.some(sub => sub.view === activeView);
+                  const isCurrentActive = activeView === item.view || isChildActive;
+
+                  return (
+                    <div key={item.label} className="w-full">
+                      <button
+                        onClick={() => {
+                          if (hasChildren) {
+                            setIsPetitionsOpen(!isPetitionsOpen);
+                          } else {
+                            if (item.onClick) item.onClick();
+                            if (item.view) setActiveView(item.view);
+                          }
+                        }}
+                        className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 relative group/btn ${isCurrentActive
+                          ? 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20 shadow-[0_0_20px_rgba(0,245,255,0.05)]'
+                          : 'text-white/40 hover:text-white hover:bg-white/5 border border-transparent'
+                          }`}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className={`${isCurrentActive ? 'text-[var(--accent)]' : 'text-white/20 group-hover/btn:text-white/60'} transition-colors`}>
+                            {item.icon}
+                          </div>
+                          <span className="text-sm font-bold tracking-tight">{item.label}</span>
+                        </div>
+                        {hasChildren && (
+                          <div className="text-white/30 group-hover/btn:text-white/60 transition-colors">
+                            {isPetitionsOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                          </div>
+                        )}
+                      </button>
+
+                      {/* Dropdown transition */}
+                      <AnimatePresence>
+                        {hasChildren && isPetitionsOpen && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden pl-6 mt-1.5 space-y-1"
+                          >
+                            {item.children?.map((sub) => (
+                              <button
+                                key={sub.label}
+                                onClick={() => setActiveView(sub.view)}
+                                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 relative group/subBtn ${activeView === sub.view
+                                  ? 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/10 shadow-[0_0_15px_rgba(0,245,255,0.03)]'
+                                  : 'text-white/40 hover:text-white hover:bg-white/5 border border-transparent'
+                                  }`}
+                              >
+                                <div className={`${activeView === sub.view ? 'text-[var(--accent)]' : 'text-white/20 group-hover/subBtn:text-white/60'} transition-colors`}>
+                                  {sub.icon}
+                                </div>
+                                <span className="text-[12px] font-bold tracking-tight">{sub.label}</span>
+                              </button>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
-                    <span className="text-sm font-bold tracking-tight">{item.label}</span>
-                  </button>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
