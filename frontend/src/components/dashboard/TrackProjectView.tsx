@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Building2, MapPin, HardHat, ChevronRight, Activity, Users, Shield, Clock } from 'lucide-react';
+import { Building2, MapPin, HardHat, ChevronRight, Activity, Users, Shield, Clock, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import axios from 'axios';
 import GlassCard from '../ui/GlassCard';
 import ProjectTimeline from './ProjectTimeline';
@@ -15,6 +15,7 @@ const TrackProjectView: React.FC<TrackProjectViewProps> = ({ initialSelectedId, 
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const [updates, setUpdates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
     fetchApprovedItems();
@@ -105,80 +106,97 @@ const TrackProjectView: React.FC<TrackProjectViewProps> = ({ initialSelectedId, 
   return (
     <div className="flex-1 flex h-full w-full overflow-hidden bg-[#020812]">
       {/* Left List Pane (40% width) */}
-      <div className="w-[360px] xl:w-[400px] border-r border-white/5 flex flex-col h-full bg-[#050b16]/30 shrink-0">
-        <div className="p-6 border-b border-white/5">
-          <span className="text-[9px] text-[var(--accent)] font-black uppercase tracking-[0.4em] block mb-1">Civilian Oversight</span>
-          <h2 className="text-2xl font-black uppercase italic tracking-tighter text-white">Project Monitor</h2>
-          <p className="text-white/40 text-[9px] uppercase font-bold tracking-widest mt-1.5">Implementation Lifecycles</p>
-        </div>
-        
-        {/* Scrollable list */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-          {loading ? (
-            <div className="h-32 flex items-center justify-center">
-              <div className="w-6 h-6 border-2 border-[var(--accent)]/20 border-t-[var(--accent)] rounded-full animate-spin" />
-            </div>
-          ) : items.length === 0 ? (
-            <div className="p-8 text-center text-white/30 text-xs">No approved projects found.</div>
-          ) : (
-            items.map((item) => {
-              const isSelected = selectedItem?.id === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => handleSelectItem(item)}
-                  className={`w-full text-left p-4 rounded-2xl border transition-all duration-300 relative overflow-hidden flex flex-col gap-2.5 ${
-                    isSelected
-                      ? 'bg-[var(--accent)]/5 border-[var(--accent)]/30 shadow-[0_0_15px_rgba(0,245,255,0.02)]'
-                      : 'bg-white/[0.01] border-white/5 hover:bg-white/[0.03] hover:border-white/10'
-                  }`}
-                >
-                  {/* Left accent strip for selected */}
-                  {isSelected && (
-                    <div className="absolute left-0 top-0 w-1 h-full bg-[var(--accent)] shadow-[0_0_8px_var(--accent)]" />
-                  )}
+      {isSidebarOpen && (
+        <div className="w-[360px] xl:w-[400px] border-r border-white/5 flex flex-col h-full bg-[#050b16]/30 shrink-0">
+          <div className="p-6 border-b border-white/5">
+            <span className="text-[9px] text-[var(--accent)] font-black uppercase tracking-[0.4em] block mb-1">Civilian Oversight</span>
+            <h2 className="text-2xl font-black uppercase italic tracking-tighter text-white">Project Monitor</h2>
+            <p className="text-white/40 text-[9px] uppercase font-bold tracking-widest mt-1.5">Implementation Lifecycles</p>
+          </div>
+          
+          {/* Scrollable list */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+            {loading ? (
+              <div className="h-32 flex items-center justify-center">
+                <div className="w-6 h-6 border-2 border-[var(--accent)]/20 border-t-[var(--accent)] rounded-full animate-spin" />
+              </div>
+            ) : items.length === 0 ? (
+              <div className="p-8 text-center text-white/30 text-xs">No approved projects found.</div>
+            ) : (
+              items.map((item) => {
+                const isSelected = selectedItem?.id === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleSelectItem(item)}
+                    className={`w-full text-left p-4 rounded-2xl border transition-all duration-300 relative overflow-hidden flex flex-col gap-2.5 ${
+                      isSelected
+                        ? 'bg-[var(--accent)]/5 border-[var(--accent)]/30 shadow-[0_0_15px_rgba(0,245,255,0.02)]'
+                        : 'bg-white/[0.01] border-white/5 hover:bg-white/[0.03] hover:border-white/10'
+                    }`}
+                  >
+                    {/* Left accent strip for selected */}
+                    {isSelected && (
+                      <div className="absolute left-0 top-0 w-1 h-full bg-[var(--accent)] shadow-[0_0_8px_var(--accent)]" />
+                    )}
 
-                  <div className="flex justify-between items-center">
-                    <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${
-                      item.type === 'petition' ? 'bg-purple-500/10 text-purple-400 border-purple-500/10' : 'bg-amber-500/10 text-amber-400 border-amber-500/10'
-                    }`}>
-                      {item.type}
-                    </span>
-                    <span className="text-[9px] font-mono text-white/20">#{item.id.slice(-4).toUpperCase()}</span>
-                  </div>
-
-                  <div>
-                    <h3 className="font-black text-sm text-white group-hover:text-[var(--accent)] transition-colors truncate">{item.title || item.category}</h3>
-                    <div className="flex items-center gap-1 text-[10px] text-white/30 font-semibold mt-1">
-                      <MapPin size={10} className="text-[var(--accent)] shrink-0" />
-                      <span className="truncate">{item.locationName?.split(',')[0]}</span>
+                    <div className="flex justify-between items-center">
+                      <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${
+                        item.type === 'petition' ? 'bg-purple-500/10 text-purple-400 border-purple-500/10' : 'bg-amber-500/10 text-amber-400 border-amber-500/10'
+                      }`}>
+                        {item.type}
+                      </span>
+                      <span className="text-[9px] font-mono text-white/20">#{item.id.slice(-4).toUpperCase()}</span>
                     </div>
-                  </div>
 
-                  <div className="flex items-center justify-between pt-2.5 border-t border-white/5">
-                    <span className={`text-[9px] font-black uppercase tracking-wider ${
-                      item.status === 'RESOLVED' ? 'text-emerald-400' : 'text-[var(--accent)]'
-                    }`}>
-                      {item.status === 'RESOLVED' ? 'Delivered' : 'In Progress'}
-                    </span>
-                    <div className="h-1.5 w-16 bg-white/5 rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full rounded-full ${item.status === 'RESOLVED' ? 'bg-emerald-400' : 'bg-[var(--accent)]'}`}
-                        style={{ width: item.status === 'RESOLVED' ? '100%' : '28%' }}
-                      />
+                    <div>
+                      <h3 className="font-black text-sm text-white group-hover:text-[var(--accent)] transition-colors truncate">{item.title || item.category}</h3>
+                      <div className="flex items-center gap-1 text-[10px] text-white/30 font-semibold mt-1">
+                        <MapPin size={10} className="text-[var(--accent)] shrink-0" />
+                        <span className="truncate">{item.locationName?.split(',')[0]}</span>
+                      </div>
                     </div>
-                  </div>
-                </button>
-              );
-            })
-          )}
+
+                    <div className="flex items-center justify-between pt-2.5 border-t border-white/5">
+                      <span className={`text-[9px] font-black uppercase tracking-wider ${
+                        item.status === 'RESOLVED' ? 'text-emerald-400' : 'text-[var(--accent)]'
+                      }`}>
+                        {item.status === 'RESOLVED' ? 'Delivered' : 'In Progress'}
+                      </span>
+                      <div className="h-1.5 w-16 bg-white/5 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full rounded-full ${item.status === 'RESOLVED' ? 'bg-emerald-400' : 'bg-[var(--accent)]'}`}
+                          style={{ width: item.status === 'RESOLVED' ? '100%' : '28%' }}
+                        />
+                      </div>
+                    </div>
+                  </button>
+                );
+              })
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Right Detail Pane (60% width) */}
       <div className="flex-1 overflow-y-auto p-8 custom-scrollbar h-full bg-[#020812] relative">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(0,245,255,0.02),transparent_50%)] pointer-events-none" />
         
+        {/* Toggle options bar */}
+        <div className="flex justify-between items-center mb-6">
+          <button
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/60 hover:text-white transition-all flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider"
+          >
+            {isSidebarOpen ? <PanelLeftClose size={14} /> : <PanelLeftOpen size={14} />}
+            {isSidebarOpen ? 'Hide Case List' : 'Show Case List'}
+          </button>
+          
+          {selectedItem && (
+            <span className="text-[9px] font-mono text-white/20">LOG PARITY: SECURED</span>
+          )}
+        </div>
+
         <AnimatePresence mode="wait">
           {selectedItem ? (
             <motion.div

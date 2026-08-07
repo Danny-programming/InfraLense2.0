@@ -304,15 +304,7 @@ Generated via InfraLense Platform
             </div>
           </div>
 
-          <div className="p-6 border-t border-white/5 bg-black/20">
-            <div className="p-4 bg-gradient-to-br from-[var(--accent-dim)] to-transparent rounded-2xl border border-[var(--accent)]/10">
-              <div className="text-[10px] text-[var(--accent)] font-black uppercase mb-1.5 flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] shadow-[0_0_10px_var(--accent)] animate-pulse" />
-                Live System Status
-              </div>
-              <p className="text-[11px] text-white/40 leading-relaxed font-medium">Regional infrastructure data being processed in real-time.</p>
-            </div>
-          </div>
+          {/* Removed Live System Status card as requested */}
         </aside>
 
         {/* View Content */}
