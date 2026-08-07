@@ -204,7 +204,7 @@ Generated via InfraLense Platform
                 {navItems.map((item) => {
                   const hasChildren = !!item.children;
                   const isChildActive = hasChildren && item.children?.some(sub => sub.view === activeView);
-                  const isCurrentActive = activeView === item.view || isChildActive;
+                  const isCurrentActive = activeView === item.view;
 
                   return (
                     <div key={item.label} className="w-full">
@@ -217,13 +217,20 @@ Generated via InfraLense Platform
                             if (item.view) setActiveView(item.view);
                           }
                         }}
-                        className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 relative group/btn ${isCurrentActive
-                          ? 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20 shadow-[0_0_20px_rgba(0,245,255,0.05)]'
-                          : 'text-white/40 hover:text-white hover:bg-white/5 border border-transparent'
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300 relative group/btn ${isCurrentActive
+                          ? 'bg-white/[0.03] text-[var(--accent)]'
+                          : isChildActive
+                            ? 'text-white/80'
+                            : 'text-white/40 hover:text-white hover:bg-white/5'
                           }`}
                       >
+                        {/* Active vertical strip indicator */}
+                        {isCurrentActive && (
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-[var(--accent)] rounded-r-md shadow-[0_0_10px_var(--accent)]" />
+                        )}
+
                         <div className="flex items-center gap-4">
-                          <div className={`${isCurrentActive ? 'text-[var(--accent)]' : 'text-white/20 group-hover/btn:text-white/60'} transition-colors`}>
+                          <div className={`${isCurrentActive || isChildActive ? 'text-[var(--accent)]' : 'text-white/20 group-hover/btn:text-white/60'} transition-colors`}>
                             {item.icon}
                           </div>
                           <span className="text-sm font-bold tracking-tight">{item.label}</span>
@@ -242,23 +249,32 @@ Generated via InfraLense Platform
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: 'auto', opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden pl-6 mt-1.5 space-y-1"
+                            className="overflow-hidden ml-6 pl-4 border-l border-white/5 mt-1 space-y-1"
                           >
-                            {item.children?.map((sub) => (
-                              <button
-                                key={sub.label}
-                                onClick={() => setActiveView(sub.view)}
-                                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 relative group/subBtn ${activeView === sub.view
-                                  ? 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/10 shadow-[0_0_15px_rgba(0,245,255,0.03)]'
-                                  : 'text-white/40 hover:text-white hover:bg-white/5 border border-transparent'
-                                  }`}
-                              >
-                                <div className={`${activeView === sub.view ? 'text-[var(--accent)]' : 'text-white/20 group-hover/subBtn:text-white/60'} transition-colors`}>
-                                  {sub.icon}
-                                </div>
-                                <span className="text-[12px] font-bold tracking-tight">{sub.label}</span>
-                              </button>
-                            ))}
+                            {item.children?.map((sub) => {
+                              const isSubActive = activeView === sub.view;
+                              return (
+                                <button
+                                  key={sub.label}
+                                  onClick={() => setActiveView(sub.view)}
+                                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-300 relative group/subBtn ${isSubActive
+                                    ? 'text-[var(--accent)] font-black'
+                                    : 'text-white/40 hover:text-white hover:bg-white/[0.02]'
+                                    }`}
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div className={`${isSubActive ? 'text-[var(--accent)]' : 'text-white/20 group-hover/subBtn:text-white/60'} transition-colors`}>
+                                      {sub.icon}
+                                    </div>
+                                    <span className="text-[12px] font-bold tracking-tight">{sub.label}</span>
+                                  </div>
+                                  
+                                  {isSubActive && (
+                                    <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] shadow-[0_0_8px_var(--accent)] animate-pulse" />
+                                  )}
+                                </button>
+                              );
+                            })}
                           </motion.div>
                         )}
                       </AnimatePresence>
