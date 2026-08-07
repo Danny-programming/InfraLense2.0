@@ -108,10 +108,19 @@ const TrackProjectView: React.FC<TrackProjectViewProps> = ({ initialSelectedId, 
       {/* Left List Pane (40% width) */}
       {isSidebarOpen && (
         <div className="w-[360px] xl:w-[400px] border-r border-white/5 flex flex-col h-full bg-[#050b16]/30 shrink-0">
-          <div className="p-6 border-b border-white/5">
-            <span className="text-[9px] text-[var(--accent)] font-black uppercase tracking-[0.4em] block mb-1">Civilian Oversight</span>
-            <h2 className="text-2xl font-black uppercase italic tracking-tighter text-white">Project Monitor</h2>
-            <p className="text-white/40 text-[9px] uppercase font-bold tracking-widest mt-1.5">Implementation Lifecycles</p>
+          <div className="p-6 border-b border-white/5 flex justify-between items-center">
+            <div>
+              <span className="text-[9px] text-[var(--accent)] font-black uppercase tracking-[0.4em] block mb-1">Civilian Oversight</span>
+              <h2 className="text-2xl font-black uppercase italic tracking-tighter text-white">Project Monitor</h2>
+              <p className="text-white/40 text-[9px] uppercase font-bold tracking-widest mt-1.5">Implementation Lifecycles</p>
+            </div>
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              className="p-2.5 bg-white/5 hover:bg-white/10 hover:text-[var(--accent)] border border-white/10 rounded-xl text-white/50 transition-all shrink-0 ml-4"
+              title="Hide Case List"
+            >
+              <PanelLeftClose size={16} />
+            </button>
           </div>
           
           {/* Scrollable list */}
@@ -184,13 +193,16 @@ const TrackProjectView: React.FC<TrackProjectViewProps> = ({ initialSelectedId, 
         
         {/* Toggle options bar */}
         <div className="flex justify-between items-center mb-6">
-          <button
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/60 hover:text-white transition-all flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider"
-          >
-            {isSidebarOpen ? <PanelLeftClose size={14} /> : <PanelLeftOpen size={14} />}
-            {isSidebarOpen ? 'Hide Case List' : 'Show Case List'}
-          </button>
+          {!isSidebarOpen ? (
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="px-3 py-1.5 bg-[var(--accent)]/10 hover:bg-[var(--accent)]/20 border border-[var(--accent)]/25 rounded-xl text-[var(--accent)] hover:text-white transition-all flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider shadow-[0_0_15px_rgba(0,245,255,0.1)]"
+            >
+              <PanelLeftOpen size={14} /> Show Case List
+            </button>
+          ) : (
+            <div className="w-1" />
+          )}
           
           {selectedItem && (
             <span className="text-[9px] font-mono text-white/20">LOG PARITY: SECURED</span>
